@@ -46,7 +46,6 @@ This project was built as a personal small practical app for tracking money betw
 4. Run a specific target:
 
    ```bash
-   npm run ios
    npm run android
    npm run web
    ```
@@ -59,4 +58,4 @@ Create a `.env` file from `.env.example` to enable Firestore sync:
 cp .env.example .env
 ```
 
-The app reads `EXPO_PUBLIC_FIREBASE_*` variables and stores entries in Firestore ledger collections.
+The app reads `EXPO_PUBLIC_FIREBASE_*` variables and stores entries in Firestore ledger collections. People are stored in the top-level `people` collection, and purchase source options are stored in `purchaseSources`; both are seeded with defaults when empty. If Firebase variables are not present, the app starts in local demo mode instead.

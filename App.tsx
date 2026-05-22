@@ -9,12 +9,15 @@ import {
   Platform,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import {
   addDoc,
   collection,
@@ -25,51 +28,239 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   Timestamp,
 } from "firebase/firestore";
 import Svg, { Path } from "react-native-svg";
 
 import { db, firebaseIsConfigured } from "./src/firebase";
 
-type User = "Mom" | "Dad";
+type Person = {
+  id: string;
+  name: string;
+};
 
-type PurchaseSource =
-  | "Aliexpress"
-  | "Amazon"
-  | "Careem"
-  | "Default"
-  | "Deliveroo"
-  | "Keeta"
-  | "Noon"
-  | "Temu";
+type SettingsTab = "people" | "sources";
+
+type PurchaseSource = {
+  id: string;
+  name: string;
+};
 
 type LedgerEntry = {
   id: string;
   amountCents: number;
-  source: PurchaseSource;
+  source: string;
   note: string;
-  user: User;
+  user: string;
   createdAt: Date;
 };
 
-const users: User[] = ["Dad", "Mom"];
+const defaultPeople: Person[] = [
+  { id: "dad", name: "Dad" },
+  { id: "mom", name: "Mom" },
+];
 
-const ledgerId = (user: User) => `ledger-${user.toLowerCase()}`;
-const purchaseSources: PurchaseSource[] = [
-  "Default",
-  "Aliexpress",
-  "Amazon",
-  "Careem",
-  "Deliveroo",
-  "Keeta",
-  "Noon",
-  "Temu",
+const ledgerId = (personName: string) =>
+  `ledger-${sourceIdFromName(personName) || "default"}`;
+const defaultPurchaseSources: PurchaseSource[] = [
+  { id: "default", name: "Default" },
+  { id: "aliexpress", name: "Aliexpress" },
+  { id: "amazon", name: "Amazon" },
+  { id: "careem", name: "Careem" },
+  { id: "deliveroo", name: "Deliveroo" },
+  { id: "keeta", name: "Keeta" },
+  { id: "noon", name: "Noon" },
+  { id: "temu", name: "Temu" },
 ];
 
 const amountFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+
+const formatAmount = (amountCents: number) =>
+  `${amountCents < 0 ? "(" : ""}AED ${amountFormatter.format(
+    Math.abs(amountCents) / 100,
+  )}${amountCents < 0 ? ")" : ""}`;
+
+const formatEntryDate = (date: Date) =>
+  date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const sourceIdFromName = (name: string) =>
+  name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const isDefaultSource = (sourceName: string) =>
+  sourceName.trim().toLowerCase() === "default";
+
+const numberWords: Record<number, string> = {
+  0: "Zero",
+  1: "One",
+  2: "Two",
+  3: "Three",
+  4: "Four",
+  5: "Five",
+  6: "Six",
+  7: "Seven",
+  8: "Eight",
+  9: "Nine",
+  10: "Ten",
+};
+
+const formatPeopleCountLabel = (count: number) => {
+  const countLabel = numberWords[count] ?? String(count);
+  return `${countLabel}-Person Ledger`;
+};
+
+const buildLedgerReportHtml = ({
+  balanceCents,
+  entries,
+  user,
+}: {
+  balanceCents: number;
+  entries: LedgerEntry[];
+  user: string;
+}) => {
+  const generatedAt = new Date();
+  const rows = entries
+    .map(
+      (entry) => `
+        <tr>
+          <td>
+            <strong>${escapeHtml(entry.note || "Untitled entry")}</strong>
+            <span>${escapeHtml(entry.source)} · ${formatEntryDate(
+              entry.createdAt,
+            )}</span>
+          </td>
+          <td class="${entry.amountCents < 0 ? "negative" : "positive"}">
+            ${formatAmount(entry.amountCents)}
+          </td>
+        </tr>
+      `,
+    )
+    .join("");
+
+  return `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          * { box-sizing: border-box; }
+          body {
+            color: #172426;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 40px;
+          }
+          .kicker {
+            color: #526062;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+          }
+          h1 {
+            font-size: 32px;
+            margin: 6px 0 20px;
+          }
+          .summary {
+            border: 1px solid #d9d6ca;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            padding: 18px;
+          }
+          .summary-label {
+            color: #526062;
+            font-size: 13px;
+            font-weight: 700;
+          }
+          .summary-total {
+            font-size: 34px;
+            font-weight: 800;
+            margin-top: 4px;
+          }
+          table {
+            border-collapse: collapse;
+            width: 100%;
+          }
+          th {
+            border-bottom: 1px solid #d9d6ca;
+            color: #526062;
+            font-size: 12px;
+            padding: 10px 0;
+            text-align: left;
+            text-transform: uppercase;
+          }
+          th:last-child,
+          td:last-child {
+            text-align: right;
+          }
+          td {
+            border-bottom: 1px solid #ece8dd;
+            padding: 14px 0;
+            vertical-align: top;
+          }
+          td span {
+            color: #687476;
+            display: block;
+            font-size: 12px;
+            margin-top: 4px;
+          }
+          .positive { color: #2e766f; font-weight: 800; }
+          .negative { color: #b14a3b; font-weight: 800; }
+          .empty {
+            color: #687476;
+            padding: 24px 0;
+          }
+          .footer {
+            color: #687476;
+            font-size: 11px;
+            margin-top: 28px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="kicker">Ledger report</div>
+        <h1>${user}</h1>
+        <section class="summary">
+          <div class="summary-label">Total purchases</div>
+          <div class="summary-total">${formatAmount(balanceCents)}</div>
+        </section>
+        ${
+          entries.length
+            ? `<table>
+                <thead>
+                  <tr>
+                    <th>Entry</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>`
+            : `<div class="empty">No entries yet.</div>`
+        }
+        <div class="footer">Generated ${formatEntryDate(generatedAt)}</div>
+      </body>
+    </html>
+  `;
+};
 
 const seedEntries: LedgerEntry[] = [
   {
@@ -119,14 +310,9 @@ const entriesFromDocs = (
     return {
       id: entryDoc.id,
       amountCents: typeof data.amountCents === "number" ? data.amountCents : 0,
-      source: purchaseSources.includes(data.source as PurchaseSource)
-        ? (data.source as PurchaseSource)
-        : "Default",
+      source: typeof data.source === "string" ? data.source : "Default",
       note: typeof data.note === "string" ? data.note : "",
-      user:
-        typeof data.user === "string" && ["Mom", "Dad"].includes(data.user)
-          ? (data.user as User)
-          : "Dad",
+      user: typeof data.user === "string" ? data.user : "Dad",
       createdAt,
     };
   });
@@ -159,19 +345,40 @@ function AedSymbol({
 }
 
 export default function App() {
-  const [selectedUser, setSelectedUser] = useState<User>("Dad");
+  const [people, setPeople] = useState<Person[]>(
+    firebaseIsConfigured ? [] : defaultPeople,
+  );
+  const [selectedUser, setSelectedUser] = useState(defaultPeople[0].name);
   const [entries, setEntries] = useState<LedgerEntry[]>(
     firebaseIsConfigured ? [] : seedEntries,
   );
+  const [purchaseSources, setPurchaseSources] = useState<PurchaseSource[]>(
+    firebaseIsConfigured ? [] : defaultPurchaseSources,
+  );
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
-  const [source, setSource] = useState<PurchaseSource>(purchaseSources[0]);
+  const [source, setSource] = useState(defaultPurchaseSources[0].name);
+  const [newPersonName, setNewPersonName] = useState("");
+  const [newSourceName, setNewSourceName] = useState("");
   const [sourcePickerOpen, setSourcePickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingPerson, setIsSavingPerson] = useState(false);
+  const [isSavingSource, setIsSavingSource] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [addEntryModalVisible, setAddEntryModalVisible] = useState(false);
+  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("sources");
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [sourceDeleteConfirmVisible, setSourceDeleteConfirmVisible] =
+    useState(false);
+  const [personDeleteConfirmVisible, setPersonDeleteConfirmVisible] =
+    useState(false);
   const [entryToDelete, setEntryToDelete] = useState<LedgerEntry | null>(null);
+  const [personToDelete, setPersonToDelete] = useState<Person | null>(null);
+  const [sourceToDelete, setSourceToDelete] = useState<PurchaseSource | null>(
+    null,
+  );
 
   const addOverlayOpacity = useRef(new Animated.Value(0)).current;
   const addSlide = useRef(new Animated.Value(1)).current;
@@ -202,12 +409,127 @@ export default function App() {
     if (deleteConfirmVisible) animateIn(delOverlayOpacity, delSlide);
   }, [deleteConfirmVisible]);
 
-  const isFormValid = amount.trim().length > 0 && note.trim().length > 0;
+  const isFormValid =
+    amount.trim().length > 0 &&
+    note.trim().length > 0 &&
+    source.trim().length > 0;
 
   const userEntries = useMemo(
     () => entries.filter((entry) => entry.user === selectedUser),
     [entries, selectedUser],
   );
+
+  const editablePurchaseSources = useMemo(
+    () => purchaseSources.filter((item) => !isDefaultSource(item.name)),
+    [purchaseSources],
+  );
+
+  const peopleCountLabel = formatPeopleCountLabel(people.length);
+
+  useEffect(() => {
+    if (!db) {
+      return;
+    }
+
+    const database = db;
+    const peopleQuery = query(collection(database, "people"), orderBy("name"));
+
+    return onSnapshot(
+      peopleQuery,
+      (snapshot) => {
+        const nextPeople = snapshot.docs
+          .map((personDoc) => {
+            const data = personDoc.data();
+            const name = typeof data.name === "string" ? data.name.trim() : "";
+
+            return name ? { id: personDoc.id, name } : null;
+          })
+          .filter((item): item is Person => item !== null);
+
+        if (!nextPeople.length) {
+          Promise.all(
+            defaultPeople.map((defaultPerson) =>
+              setDoc(doc(database, "people", defaultPerson.id), {
+                name: defaultPerson.name,
+                createdAt: serverTimestamp(),
+              }),
+            ),
+          ).catch((error) => {
+            Alert.alert("Could not create default people", String(error));
+          });
+        }
+
+        setPeople(nextPeople);
+      },
+      (error) => {
+        Alert.alert("Could not sync people", error.message);
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!people.length) {
+      return;
+    }
+
+    if (!people.some((item) => item.name === selectedUser)) {
+      setSelectedUser(people[0].name);
+    }
+  }, [people, selectedUser]);
+
+  useEffect(() => {
+    if (!db) {
+      return;
+    }
+
+    const database = db;
+    const sourcesQuery = query(
+      collection(database, "purchaseSources"),
+      orderBy("name", "asc"),
+    );
+
+    return onSnapshot(
+      sourcesQuery,
+      (snapshot) => {
+        const nextSources = snapshot.docs
+          .map((sourceDoc) => {
+            const data = sourceDoc.data();
+            const name = typeof data.name === "string" ? data.name.trim() : "";
+
+            return name ? { id: sourceDoc.id, name } : null;
+          })
+          .filter((item): item is PurchaseSource => item !== null);
+
+        if (!nextSources.length) {
+          Promise.all(
+            defaultPurchaseSources.map((defaultSource) =>
+              setDoc(doc(database, "purchaseSources", defaultSource.id), {
+                name: defaultSource.name,
+                createdAt: serverTimestamp(),
+              }),
+            ),
+          ).catch((error) => {
+            Alert.alert("Could not create default sources", String(error));
+          });
+        }
+
+        setPurchaseSources(nextSources);
+      },
+      (error) => {
+        Alert.alert("Could not sync sources", error.message);
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!purchaseSources.length) {
+      return;
+    }
+
+    if (!purchaseSources.some((item) => item.name === source)) {
+      setSource(purchaseSources[0].name);
+    }
+  }, [purchaseSources, source]);
 
   useEffect(() => {
     if (!db) {
@@ -321,6 +643,199 @@ export default function App() {
     }
   };
 
+  const addPerson = async () => {
+    const trimmedName = newPersonName.trim();
+
+    if (!trimmedName) {
+      Alert.alert("Enter a name", "Use a name like Dad or Mom.");
+      return;
+    }
+
+    if (
+      people.some(
+        (item) => item.name.toLowerCase() === trimmedName.toLowerCase(),
+      )
+    ) {
+      Alert.alert("Person already exists", `${trimmedName} is already listed.`);
+      return;
+    }
+
+    setIsSavingPerson(true);
+
+    try {
+      if (db) {
+        await addDoc(collection(db, "people"), {
+          name: trimmedName,
+          createdAt: serverTimestamp(),
+        });
+      } else {
+        setPeople((currentPeople) => [
+          ...currentPeople,
+          {
+            id: sourceIdFromName(trimmedName) || `person-${Date.now()}`,
+            name: trimmedName,
+          },
+        ]);
+      }
+
+      setSelectedUser(trimmedName);
+      setNewPersonName("");
+    } catch (error) {
+      Alert.alert("Could not add person", String(error));
+    } finally {
+      setIsSavingPerson(false);
+    }
+  };
+
+  const removePerson = async (personToRemove: Person) => {
+    if (people.length <= 1) {
+      Alert.alert("Keep one person", "At least one person is required.");
+      return;
+    }
+
+    try {
+      if (db) {
+        await deleteDoc(doc(db, "people", personToRemove.id));
+      } else {
+        setPeople((currentPeople) =>
+          currentPeople.filter((item) => item.id !== personToRemove.id),
+        );
+      }
+
+      if (selectedUser === personToRemove.name) {
+        const nextPerson = people.find((item) => item.id !== personToRemove.id);
+        if (nextPerson) setSelectedUser(nextPerson.name);
+      }
+    } catch (error) {
+      Alert.alert("Could not remove person", String(error));
+    }
+  };
+
+  const requestRemovePerson = (personToRemove: Person) => {
+    setPersonToDelete(personToRemove);
+    setPersonDeleteConfirmVisible(true);
+  };
+
+  const addPurchaseSource = async () => {
+    const trimmedName = newSourceName.trim();
+
+    if (!trimmedName) {
+      Alert.alert("Enter a source", "Use a name like Amazon or Groceries.");
+      return;
+    }
+
+    if (
+      purchaseSources.some(
+        (item) => item.name.toLowerCase() === trimmedName.toLowerCase(),
+      )
+    ) {
+      Alert.alert("Source already exists", `${trimmedName} is already listed.`);
+      return;
+    }
+
+    setIsSavingSource(true);
+
+    try {
+      if (db) {
+        await addDoc(collection(db, "purchaseSources"), {
+          name: trimmedName,
+          createdAt: serverTimestamp(),
+        });
+      } else {
+        setPurchaseSources((currentSources) => [
+          ...currentSources,
+          {
+            id: sourceIdFromName(trimmedName) || `source-${Date.now()}`,
+            name: trimmedName,
+          },
+        ]);
+      }
+
+      setSource(trimmedName);
+      setNewSourceName("");
+    } catch (error) {
+      Alert.alert("Could not add source", String(error));
+    } finally {
+      setIsSavingSource(false);
+    }
+  };
+
+  const removePurchaseSource = async (sourceToRemove: PurchaseSource) => {
+    if (isDefaultSource(sourceToRemove.name)) {
+      Alert.alert("Default source", "Default cannot be deleted.");
+      return;
+    }
+
+    if (purchaseSources.length <= 1) {
+      Alert.alert("Keep one source", "At least one source is required.");
+      return;
+    }
+
+    try {
+      if (db) {
+        await deleteDoc(doc(db, "purchaseSources", sourceToRemove.id));
+      } else {
+        setPurchaseSources((currentSources) =>
+          currentSources.filter((item) => item.id !== sourceToRemove.id),
+        );
+      }
+
+      if (source === sourceToRemove.name) {
+        const nextSource = purchaseSources.find(
+          (item) => item.id !== sourceToRemove.id,
+        );
+        if (nextSource) setSource(nextSource.name);
+      }
+    } catch (error) {
+      Alert.alert("Could not remove source", String(error));
+    }
+  };
+
+  const requestRemovePurchaseSource = (sourceToRemove: PurchaseSource) => {
+    setSourceToDelete(sourceToRemove);
+    setSourceDeleteConfirmVisible(true);
+  };
+
+  const shareLedgerPdf = async () => {
+    if (Platform.OS === "web") {
+      Alert.alert(
+        "Share from your phone",
+        "PDF sharing is available in Expo Go on Android.",
+      );
+      return;
+    }
+
+    setIsSharing(true);
+
+    try {
+      const html = buildLedgerReportHtml({
+        balanceCents,
+        entries: userEntries,
+        user: selectedUser,
+      });
+      const { uri } = await Print.printToFileAsync({
+        base64: false,
+        html,
+      });
+      const sharingAvailable = await Sharing.isAvailableAsync();
+
+      if (!sharingAvailable) {
+        Alert.alert("Sharing unavailable", "This device cannot share files.");
+        return;
+      }
+
+      await Sharing.shareAsync(uri, {
+        dialogTitle: "Share ledger PDF",
+        mimeType: "application/pdf",
+        UTI: "com.adobe.pdf",
+      });
+    } catch (error) {
+      Alert.alert("Could not share PDF", String(error));
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -332,28 +847,42 @@ export default function App() {
           <View style={styles.nonScrollContent}>
             <View style={styles.header}>
               <View style={styles.headerTopRow}>
-                <Text style={styles.kicker}>Two-person ledger</Text>
-                <Pressable
-                  accessibilityLabel="Refresh ledger"
-                  disabled={isRefreshing}
-                  onPress={refreshEntries}
-                  style={({ pressed }) => [
-                    pressed && styles.buttonPressed,
-                    isRefreshing && styles.buttonDisabled,
-                  ]}
-                >
-                  <Text style={styles.refreshIcon}>
-                    {isRefreshing ? "..." : "↻"}
-                  </Text>
-                </Pressable>
+                <Text style={styles.kicker}>{peopleCountLabel}</Text>
+                <View style={styles.headerActions}>
+                  <Pressable
+                    accessibilityLabel="Manage sources"
+                    onPress={() => setSettingsModalVisible(true)}
+                    style={({ pressed }) => [
+                      styles.headerIconButton,
+                      pressed && styles.buttonPressed,
+                    ]}
+                  >
+                    <MaterialIcons name="settings" style={styles.headerIcon} />
+                  </Pressable>
+                  <Pressable
+                    accessibilityLabel="Refresh ledger"
+                    disabled={isRefreshing}
+                    onPress={refreshEntries}
+                    style={({ pressed }) => [
+                      styles.headerIconButton,
+                      pressed && styles.buttonPressed,
+                      isRefreshing && styles.buttonDisabled,
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={isRefreshing ? "hourglass-empty" : "refresh"}
+                      style={styles.headerIcon}
+                    />
+                  </Pressable>
+                </View>
               </View>
               <View style={styles.tabBar}>
-                {users.map((user) => {
-                  const isActive = selectedUser === user;
+                {people.map((person) => {
+                  const isActive = selectedUser === person.name;
                   return (
                     <Pressable
-                      key={user}
-                      onPress={() => setSelectedUser(user)}
+                      key={person.id}
+                      onPress={() => setSelectedUser(person.name)}
                       style={[styles.tab, isActive && styles.tabActive]}
                     >
                       <Text
@@ -362,7 +891,7 @@ export default function App() {
                           isActive && styles.tabTextActive,
                         ]}
                       >
-                        {user}
+                        {person.name}
                       </Text>
                     </Pressable>
                   );
@@ -387,6 +916,21 @@ export default function App() {
                     {amountFormatter.format(Math.abs(balanceCents) / 100)}
                     {balanceCents < 0 ? ")" : ""}
                   </Text>
+                  <Pressable
+                    accessibilityLabel="Share ledger PDF"
+                    disabled={isSharing}
+                    onPress={shareLedgerPdf}
+                    style={({ pressed }) => [
+                      styles.balanceIconButton,
+                      pressed && styles.buttonPressed,
+                      isSharing && styles.buttonDisabled,
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={isSharing ? "hourglass-empty" : "ios-share"}
+                      style={styles.balanceIcon}
+                    />
+                  </Pressable>
                 </View>
                 <Text style={styles.syncLabel}>
                   {firebaseIsConfigured
@@ -424,11 +968,7 @@ export default function App() {
                   </Text>
                   <Text style={styles.entryMeta}>
                     {item.source} ·{" "}
-                    {item.createdAt.toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    {formatEntryDate(item.createdAt)}
                   </Text>
                 </View>
                 <View style={styles.entryAmountBlock}>
@@ -516,39 +1056,51 @@ export default function App() {
                               <Text style={styles.sourceValue}>{source}</Text>
                             </Text>
                             <MaterialIcons
-                              name="add-circle-outline"
+                              name={
+                                sourcePickerOpen
+                                  ? "keyboard-arrow-up"
+                                  : "keyboard-arrow-down"
+                              }
                               size={22}
                               color="#526062"
                             />
                           </Pressable>
                           {sourcePickerOpen && (
-                            <View style={styles.pillRow}>
-                              {purchaseSources.map((purchaseSource) => {
-                                const isSelected = source === purchaseSource;
+                            <View style={styles.sourcePickerPanel}>
+                              <View style={styles.pillRow}>
+                                {purchaseSources.map((purchaseSource) => {
+                                  const isSelected =
+                                    source === purchaseSource.name;
 
-                                return (
-                                  <Pressable
-                                    key={purchaseSource}
-                                    onPress={() => {
-                                      setSource(purchaseSource);
-                                      setSourcePickerOpen(false);
-                                    }}
-                                    style={[
-                                      styles.pill,
-                                      isSelected && styles.pillActive,
-                                    ]}
-                                  >
-                                    <Text
+                                  return (
+                                    <Pressable
+                                      key={purchaseSource.id}
+                                      onPress={() => {
+                                        setSource(purchaseSource.name);
+                                        setSourcePickerOpen(false);
+                                      }}
                                       style={[
-                                        styles.pillText,
-                                        isSelected && styles.pillTextActive,
+                                        styles.pill,
+                                        isSelected && styles.pillActive,
                                       ]}
                                     >
-                                      {purchaseSource}
-                                    </Text>
-                                  </Pressable>
-                                );
-                              })}
+                                      <Text
+                                        style={[
+                                          styles.pillText,
+                                          isSelected && styles.pillTextActive,
+                                        ]}
+                                      >
+                                        {purchaseSource.name}
+                                      </Text>
+                                    </Pressable>
+                                  );
+                                })}
+                              </View>
+                              {!purchaseSources.length && (
+                                <Text style={styles.noSourcesText}>
+                                  Add a source before saving an entry.
+                                </Text>
+                              )}
                             </View>
                           )}
                         </View>
@@ -607,6 +1159,171 @@ export default function App() {
                 </Animated.View>
               </Pressable>
             </Animated.View>
+          </Modal>
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={settingsModalVisible}
+            onRequestClose={() => setSettingsModalVisible(false)}
+          >
+            <View style={styles.settingsOverlay}>
+              <View style={styles.settingsContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Settings</Text>
+                  <Pressable
+                    onPress={() => {
+                      setSettingsModalVisible(false);
+                      setNewPersonName("");
+                      setNewSourceName("");
+                    }}
+                  >
+                    <MaterialIcons name="close" size={24} color="#526062" />
+                  </Pressable>
+                </View>
+
+                <View style={styles.formInModal}>
+                  <View style={styles.settingsTabs}>
+                    {(["sources", "people"] as SettingsTab[]).map((tab) => {
+                      const isActive = settingsTab === tab;
+                      return (
+                        <Pressable
+                          key={tab}
+                          onPress={() => setSettingsTab(tab)}
+                          style={[
+                            styles.settingsTab,
+                            isActive && styles.settingsTabActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.settingsTabText,
+                              isActive && styles.settingsTabTextActive,
+                            ]}
+                          >
+                            {tab === "people" ? "People" : "Sources"}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  {settingsTab === "people" ? (
+                    <View>
+                      <View style={styles.addSourceRow}>
+                        <TextInput
+                          onChangeText={setNewPersonName}
+                          onSubmitEditing={addPerson}
+                          placeholder="New person"
+                          placeholderTextColor="#7f8a8d"
+                          style={styles.addSourceInput}
+                          value={newPersonName}
+                        />
+                        <Pressable
+                          disabled={isSavingPerson}
+                          onPress={addPerson}
+                          style={({ pressed }) => [
+                            styles.addSourceButton,
+                            pressed && styles.buttonPressed,
+                            isSavingPerson && styles.buttonDisabled,
+                          ]}
+                        >
+                          <MaterialIcons name="add" size={22} color="#ffffff" />
+                        </Pressable>
+                      </View>
+
+                      <ScrollView
+                        contentContainerStyle={styles.sourceListContent}
+                        style={styles.settingsList}
+                      >
+                        {people.map((person) => (
+                          <View key={person.id} style={styles.sourceRow}>
+                            <Text style={styles.sourceRowText}>
+                              {person.name}
+                            </Text>
+                            <Pressable
+                              accessibilityLabel={`Delete ${person.name}`}
+                              onPress={() => requestRemovePerson(person)}
+                              style={({ pressed }) => [
+                                styles.sourceDeleteButton,
+                                pressed && styles.buttonPressed,
+                              ]}
+                            >
+                              <MaterialIcons
+                                name="delete-outline"
+                                size={21}
+                                color="#b14a3b"
+                              />
+                            </Pressable>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  ) : (
+                    <View>
+                      <View style={styles.addSourceRow}>
+                        <TextInput
+                          onChangeText={setNewSourceName}
+                          onSubmitEditing={addPurchaseSource}
+                          placeholder="New source"
+                          placeholderTextColor="#7f8a8d"
+                          style={styles.addSourceInput}
+                          value={newSourceName}
+                        />
+                        <Pressable
+                          disabled={isSavingSource}
+                          onPress={addPurchaseSource}
+                          style={({ pressed }) => [
+                            styles.addSourceButton,
+                            pressed && styles.buttonPressed,
+                            isSavingSource && styles.buttonDisabled,
+                          ]}
+                        >
+                          <MaterialIcons name="add" size={22} color="#ffffff" />
+                        </Pressable>
+                      </View>
+
+                      <ScrollView
+                        contentContainerStyle={styles.sourceListContent}
+                        style={styles.settingsList}
+                      >
+                        {editablePurchaseSources.map((purchaseSource) => (
+                          <View
+                            key={purchaseSource.id}
+                            style={styles.sourceRow}
+                          >
+                            <Text style={styles.sourceRowText}>
+                              {purchaseSource.name}
+                            </Text>
+                            <Pressable
+                              accessibilityLabel={`Delete ${purchaseSource.name}`}
+                              onPress={() =>
+                                requestRemovePurchaseSource(purchaseSource)
+                              }
+                              style={({ pressed }) => [
+                                styles.sourceDeleteButton,
+                                pressed && styles.buttonPressed,
+                              ]}
+                            >
+                              <MaterialIcons
+                                name="delete-outline"
+                                size={21}
+                                color="#b14a3b"
+                              />
+                            </Pressable>
+                          </View>
+                        ))}
+                        {!editablePurchaseSources.length && (
+                          <Text style={styles.noSourcesText}>
+                            Add custom sources to show them here.
+                          </Text>
+                        )}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+              </View>
+            </View>
           </Modal>
 
           <Modal
@@ -705,6 +1422,118 @@ export default function App() {
               </Pressable>
             </Animated.View>
           </Modal>
+
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={sourceDeleteConfirmVisible}
+            onRequestClose={() => setSourceDeleteConfirmVisible(false)}
+          >
+            <View style={styles.confirmOverlay}>
+              <View style={styles.confirmContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Delete source?</Text>
+                  <Pressable
+                    onPress={() => setSourceDeleteConfirmVisible(false)}
+                  >
+                    <MaterialIcons name="close" size={24} color="#526062" />
+                  </Pressable>
+                </View>
+
+                {sourceToDelete && (
+                  <View style={styles.formInModal}>
+                    <Text style={styles.deleteConfirmText}>
+                      {sourceToDelete.name}
+                    </Text>
+                    <Text style={styles.deleteConfirmMeta}>
+                      This permanently removes the source option. Existing
+                      entries that already use it will keep their source name.
+                    </Text>
+
+                    <View style={styles.deleteConfirmButtons}>
+                      <Pressable
+                        onPress={() => {
+                          setSourceDeleteConfirmVisible(false);
+                          setSourceToDelete(null);
+                        }}
+                        style={styles.deleteCancelButton}
+                      >
+                        <Text style={styles.deleteCancelText}>Cancel</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={async () => {
+                          await removePurchaseSource(sourceToDelete);
+                          setSourceDeleteConfirmVisible(false);
+                          setSourceToDelete(null);
+                        }}
+                        style={styles.deleteConfirmButton}
+                      >
+                        <Text style={styles.deleteConfirmButtonText}>
+                          Delete
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          </Modal>
+
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={personDeleteConfirmVisible}
+            onRequestClose={() => setPersonDeleteConfirmVisible(false)}
+          >
+            <View style={styles.confirmOverlay}>
+              <View style={styles.confirmContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Delete person?</Text>
+                  <Pressable
+                    onPress={() => setPersonDeleteConfirmVisible(false)}
+                  >
+                    <MaterialIcons name="close" size={24} color="#526062" />
+                  </Pressable>
+                </View>
+
+                {personToDelete && (
+                  <View style={styles.formInModal}>
+                    <Text style={styles.deleteConfirmText}>
+                      {personToDelete.name}
+                    </Text>
+                    <Text style={styles.deleteConfirmMeta}>
+                      This removes the person from the ledger tabs. Their
+                      existing entries are not deleted from Firestore.
+                    </Text>
+
+                    <View style={styles.deleteConfirmButtons}>
+                      <Pressable
+                        onPress={() => {
+                          setPersonDeleteConfirmVisible(false);
+                          setPersonToDelete(null);
+                        }}
+                        style={styles.deleteCancelButton}
+                      >
+                        <Text style={styles.deleteCancelText}>Cancel</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={async () => {
+                          await removePerson(personToDelete);
+                          setPersonDeleteConfirmVisible(false);
+                          setPersonToDelete(null);
+                        }}
+                        style={styles.deleteConfirmButton}
+                      >
+                        <Text style={styles.deleteConfirmButtonText}>
+                          Delete
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          </Modal>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
@@ -745,18 +1574,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  headerActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 6,
+  },
+  headerIconButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderColor: "#d9d6ca",
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 34,
+    justifyContent: "center",
+    width: 34,
+  },
+  headerIcon: {
+    color: "#526062",
+    fontSize: 21,
+    lineHeight: 21,
+    includeFontPadding: false,
+    textAlign: "center",
+    textAlignVertical: "center",
+  },
   kicker: {
     color: "#526062",
     fontSize: 13,
     fontWeight: "700",
     letterSpacing: 0,
     textTransform: "uppercase",
-  },
-  refreshIcon: {
-    color: "#526062",
-    fontSize: 20,
-    fontWeight: "900",
-    lineHeight: 22,
   },
   tabBar: {
     flexDirection: "row",
@@ -815,6 +1661,25 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 4,
   },
+  balanceIconButton: {
+    alignItems: "center",
+    backgroundColor: "#f4f1ea",
+    borderColor: "#d9d6ca",
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: "center",
+    marginLeft: "auto",
+    width: 36,
+  },
+  balanceIcon: {
+    color: "#2e766f",
+    fontSize: 21,
+    lineHeight: 21,
+    includeFontPadding: false,
+    textAlign: "center",
+    textAlignVertical: "center",
+  },
   pillGroup: {
     marginTop: 0,
   },
@@ -857,6 +1722,51 @@ const styles = StyleSheet.create({
   },
   pillTextActive: {
     color: "#ffffff",
+  },
+  sourcePickerPanel: {
+    marginTop: 10,
+  },
+  addSourceRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 10,
+  },
+  addSourceInput: {
+    backgroundColor: "#ffffff",
+    borderColor: "#d9d6ca",
+    borderRadius: 8,
+    borderWidth: 1,
+    color: "#172426",
+    flex: 1,
+    fontSize: 15,
+    minHeight: 44,
+    paddingHorizontal: 12,
+  },
+  addSourceButton: {
+    alignItems: "center",
+    backgroundColor: "#2e766f",
+    borderRadius: 8,
+    justifyContent: "center",
+    width: 44,
+  },
+  sourcePill: {
+    alignItems: "center",
+    flexDirection: "row",
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
+  sourcePillName: {
+    paddingLeft: 14,
+    paddingVertical: 10,
+  },
+  removeSourceButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  noSourcesText: {
+    color: "#687476",
+    fontSize: 13,
+    marginTop: 8,
   },
   inputRow: {
     flexDirection: "row",
@@ -1013,6 +1923,31 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     paddingBottom: 40,
   },
+  settingsOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  settingsContent: {
+    backgroundColor: "#f4f1ea",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: "82%",
+    paddingBottom: 26,
+  },
+  confirmOverlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.4)",
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
+  confirmContent: {
+    backgroundColor: "#f4f1ea",
+    borderRadius: 12,
+    maxWidth: 390,
+    width: "100%",
+  },
   modalDismissArea: {
     flex: 1,
     justifyContent: "flex-end",
@@ -1044,6 +1979,63 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 15,
     fontWeight: "800",
+  },
+  settingsTabs: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: 14,
+  },
+  settingsTab: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderColor: "#d9d6ca",
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    minHeight: 42,
+    justifyContent: "center",
+  },
+  settingsTabActive: {
+    backgroundColor: "#2e766f",
+    borderColor: "#2e766f",
+  },
+  settingsTabText: {
+    color: "#526062",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  settingsTabTextActive: {
+    color: "#ffffff",
+  },
+  settingsList: {
+    maxHeight: 360,
+  },
+  sourceListContent: {
+    gap: 8,
+    paddingTop: 2,
+  },
+  sourceRow: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderColor: "#d9d6ca",
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 48,
+    paddingLeft: 14,
+  },
+  sourceRowText: {
+    color: "#172426",
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  sourceDeleteButton: {
+    alignItems: "center",
+    height: 48,
+    justifyContent: "center",
+    width: 48,
   },
   deleteConfirmText: {
     color: "#172426",
