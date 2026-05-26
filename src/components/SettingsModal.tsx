@@ -104,6 +104,6 @@ const styles = StyleSheet.create({
     padding: spacing.modal,
   },
   content: {
-    maxHeight: "82%",
+    maxHeight: "90%",
   },
 });
