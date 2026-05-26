@@ -19,7 +19,7 @@ export function ConfirmDeleteModal({
   visible: boolean;
 }) {
   return (
-    <ModalSheet visible={visible} onClose={onCancel} placement="center">
+    <ModalSheet visible={visible} onClose={onCancel}>
       <View style={styles.modalHeader}>
         <Text style={styles.modalTitle}>{title}</Text>
         <Pressable onPress={onCancel}>
