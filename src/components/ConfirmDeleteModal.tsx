@@ -1,6 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radii, sizes, spacing, typography } from "../theme";
+import { ModalSheet } from "./ModalSheet";
 
 export function ConfirmDeleteModal({
   body,
@@ -18,54 +19,32 @@ export function ConfirmDeleteModal({
   visible: boolean;
 }) {
   return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onCancel}
-    >
-      <View style={styles.confirmOverlay}>
-        <View style={styles.confirmContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{title}</Text>
-            <Pressable onPress={onCancel}>
-              <MaterialIcons name="close" size={24} color={colors.muted} />
-            </Pressable>
-          </View>
+    <ModalSheet visible={visible} onClose={onCancel} placement="center">
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>{title}</Text>
+        <Pressable onPress={onCancel}>
+          <MaterialIcons name="close" size={24} color={colors.muted} />
+        </Pressable>
+      </View>
 
-          <View style={styles.formInModal}>
-            <Text style={styles.deleteConfirmText}>{body}</Text>
-            {meta ? <Text style={styles.deleteConfirmMeta}>{meta}</Text> : null}
+      <View style={styles.formInModal}>
+        <Text style={styles.confirmText}>{body}</Text>
+        {meta ? <Text style={styles.confirmMeta}>{meta}</Text> : null}
 
-            <View style={styles.deleteConfirmButtons}>
-              <Pressable onPress={onCancel} style={styles.deleteCancelButton}>
-                <Text style={styles.deleteCancelText}>Cancel</Text>
-              </Pressable>
-              <Pressable onPress={onConfirm} style={styles.deleteConfirmButton}>
-                <Text style={styles.deleteConfirmButtonText}>Delete</Text>
-              </Pressable>
-            </View>
-          </View>
+        <View style={styles.confirmButtons}>
+          <Pressable onPress={onCancel} style={styles.cancelButton}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </Pressable>
+          <Pressable onPress={onConfirm} style={styles.confirmButton}>
+            <Text style={styles.confirmButtonText}>Delete</Text>
+          </Pressable>
         </View>
       </View>
-    </Modal>
+    </ModalSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  confirmOverlay: {
-    alignItems: "center",
-    backgroundColor: colors.overlay,
-    flex: 1,
-    justifyContent: "center",
-    padding: spacing.modal,
-  },
-  confirmContent: {
-    backgroundColor: colors.background,
-    borderRadius: radii.dialog,
-    maxWidth: 390,
-    width: "100%",
-  },
   modalHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -81,22 +60,22 @@ const styles = StyleSheet.create({
   formInModal: {
     padding: spacing.modal,
   },
-  deleteConfirmText: {
+  confirmText: {
     color: colors.text,
     fontSize: typography.sizes.input,
     fontWeight: typography.weights.bold,
     marginBottom: spacing.sm,
   },
-  deleteConfirmMeta: {
+  confirmMeta: {
     color: colors.textMuted,
     fontSize: typography.sizes.md,
   },
-  deleteConfirmButtons: {
+  confirmButtons: {
     flexDirection: "row",
     gap: spacing.xl,
     marginTop: spacing.modal,
   },
-  deleteCancelButton: {
+  cancelButton: {
     alignItems: "center",
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -106,12 +85,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: sizes.modalActionMinHeight,
   },
-  deleteCancelText: {
+  cancelButtonText: {
     color: colors.muted,
     fontSize: typography.sizes.input,
     fontWeight: typography.weights.semibold,
   },
-  deleteConfirmButton: {
+  confirmButton: {
     alignItems: "center",
     backgroundColor: colors.danger,
     borderRadius: radii.control,
@@ -119,7 +98,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: sizes.modalActionMinHeight,
   },
-  deleteConfirmButtonText: {
+  confirmButtonText: {
     color: colors.surface,
     fontSize: typography.sizes.input,
     fontWeight: typography.weights.bold,

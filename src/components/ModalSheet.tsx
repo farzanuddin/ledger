@@ -7,11 +7,13 @@ export function ModalSheet({
   children,
   contentStyle,
   onClose,
+  placement = "bottom",
   visible,
 }: {
   children: ReactNode;
   contentStyle?: ViewStyle;
   onClose: () => void;
+  placement?: "bottom" | "center";
   visible: boolean;
 }) {
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -22,19 +24,46 @@ export function ModalSheet({
 
     overlayOpacity.setValue(0);
     slide.setValue(1);
-    Animated.parallel([
+    const animations: Animated.CompositeAnimation[] = [
       Animated.timing(overlayOpacity, {
         toValue: 1,
         duration: 200,
         useNativeDriver: true,
       }),
-      Animated.timing(slide, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [overlayOpacity, slide, visible]);
+    ];
+
+    if (placement === "bottom") {
+      animations.push(
+        Animated.timing(slide, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+      );
+    }
+
+    Animated.parallel(animations).start();
+  }, [overlayOpacity, placement, slide, visible]);
+
+  if (placement === "center") {
+    return (
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}
+      >
+        <Animated.View
+          style={[styles.overlayCenter, { opacity: overlayOpacity }]}
+        >
+          <Pressable onPress={onClose} style={StyleSheet.absoluteFill} />
+          <Pressable onPress={() => {}} style={styles.centerWrapper}>
+            <View style={[styles.contentCenter, contentStyle]}>{children}</View>
+          </Pressable>
+        </Animated.View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -73,6 +102,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlay,
     justifyContent: "flex-end",
   },
+  overlayCenter: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: radii.dialog,
+  },
+  centerWrapper: {
+    width: "100%",
+    maxWidth: 390,
+  },
   dismissArea: {
     flex: 1,
     justifyContent: "flex-end",
@@ -82,5 +122,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radii.sheet,
     borderTopRightRadius: radii.sheet,
     paddingBottom: 40,
+  },
+  contentCenter: {
+    backgroundColor: colors.background,
+    borderRadius: radii.dialog,
   },
 });
