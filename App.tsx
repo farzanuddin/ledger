@@ -36,6 +36,7 @@ export default function App() {
   const entryDelete = useConfirmAction<LedgerEntry>();
   const personDelete = useConfirmAction<Person>();
   const sourceDelete = useConfirmAction<PurchaseSource>();
+  const settleConfirm = useConfirmAction<void>();
 
   const {
     addEntry,
@@ -59,6 +60,7 @@ export default function App() {
     selectedPerson,
     selectedPersonId,
     setSelectedPersonId,
+    settleBalance,
     userEntries,
   } = ledger;
 
@@ -124,12 +126,15 @@ export default function App() {
               selectedPerson={selectedPersonId}
             />
             <View style={styles.balancePanelWrap}>
-              <BalancePanel
-                balanceCents={balanceCents}
-                isSharing={isSharing}
-                onAddEntry={() => setAddEntryModalVisible(true)}
-                onSharePdf={handleSharePdf}
-              />
+          <BalancePanel
+            balanceCents={balanceCents}
+            isSharing={isSharing}
+            onAddEntry={() => setAddEntryModalVisible(true)}
+            onSharePdf={handleSharePdf}
+            onSettleBalance={() =>
+              settleConfirm.request()
+            }
+          />
             </View>
           </View>
 
@@ -213,6 +218,18 @@ export default function App() {
             }}
             title="Delete source?"
             visible={sourceDelete.visible}
+          />
+
+          <ConfirmDeleteModal
+            body="This keeps the existing ledger history and brings the current balance to zero."
+            confirmLabel="Settle"
+            onCancel={settleConfirm.clear}
+            onConfirm={async () => {
+              await settleBalance();
+              settleConfirm.clear();
+            }}
+            title={`Settle balance of AED ${formatDecimalAmount(Math.abs(balanceCents) / 100)}?`}
+            visible={settleConfirm.visible}
           />
 
           <ConfirmDeleteModal

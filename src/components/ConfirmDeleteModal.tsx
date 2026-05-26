@@ -5,6 +5,7 @@ import { ModalSheet } from "./ModalSheet";
 
 export function ConfirmDeleteModal({
   body,
+  confirmLabel = "Delete",
   meta,
   onCancel,
   onConfirm,
@@ -12,6 +13,7 @@ export function ConfirmDeleteModal({
   visible,
 }: {
   body: string;
+  confirmLabel?: string;
   meta?: string;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
@@ -36,7 +38,7 @@ export function ConfirmDeleteModal({
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </Pressable>
           <Pressable onPress={onConfirm} style={styles.confirmButton}>
-            <Text style={styles.confirmButtonText}>Delete</Text>
+            <Text style={styles.confirmButtonText}>{confirmLabel}</Text>
           </Pressable>
         </View>
       </View>

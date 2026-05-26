@@ -229,6 +229,45 @@ export function useLedgerData() {
     [selectedPerson],
   );
 
+  const settleBalance = useCallback(async () => {
+    if (!selectedPerson) {
+      Alert.alert("Choose a person first", "Select a person before settling.");
+      return false;
+    }
+
+    if (balanceCents === 0) {
+      Alert.alert("Already settled", "This ledger balance is already zero.");
+      return false;
+    }
+
+    const entry: LedgerEntry = {
+      id: `local-${Date.now()}`,
+      amountCents: -balanceCents,
+      source: "Settlement",
+      note: "Balance settled",
+      personId: selectedPerson.id,
+      user: selectedPerson.name,
+      createdAt: new Date(),
+    };
+
+    setIsSaving(true);
+
+    try {
+      if (db) {
+        await createEntry(entry);
+      } else {
+        setEntries((currentEntries) => [entry, ...currentEntries]);
+      }
+
+      return true;
+    } catch (error) {
+      Alert.alert("Could not settle balance", getErrorMessage(error));
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }, [balanceCents, selectedPerson]);
+
   const refreshEntries = useCallback(async () => {
     if (!selectedPerson) {
       setEntries([]);
@@ -414,6 +453,7 @@ export function useLedgerData() {
       selectedPerson,
       selectedPersonId,
       setSelectedPersonId,
+      settleBalance,
       userEntries,
     }),
     [
@@ -437,6 +477,7 @@ export function useLedgerData() {
       removePurchaseSource,
       selectedPerson,
       selectedPersonId,
+      settleBalance,
       userEntries,
     ],
   );

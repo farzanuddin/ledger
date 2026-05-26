@@ -10,11 +10,13 @@ export function BalancePanel({
   isSharing,
   onAddEntry,
   onSharePdf,
+  onSettleBalance,
 }: {
   balanceCents: number;
   isSharing: boolean;
   onAddEntry: () => void;
   onSharePdf: () => void;
+  onSettleBalance: () => void;
 }) {
   return (
     <View style={styles.balancePanel}>
@@ -50,9 +52,23 @@ export function BalancePanel({
       <Text style={styles.syncLabel}>
         {firebaseIsConfigured ? "Synced with Firebase" : "Firebase not configured"}
       </Text>
-      <Pressable onPress={onAddEntry} style={styles.addEntryButton}>
-        <Text style={styles.addEntryButtonText}>Add entry</Text>
-      </Pressable>
+      <View style={styles.actionRow}>
+        <Pressable onPress={onAddEntry} style={styles.addEntryButton}>
+          <Text style={styles.addEntryButtonText}>Add entry</Text>
+        </Pressable>
+        <Pressable
+          disabled={balanceCents === 0}
+          onPress={onSettleBalance}
+          style={({ pressed }) => [
+            styles.settleButton,
+            pressed && balanceCents !== 0 && commonStyles.buttonPressed,
+            balanceCents === 0 && commonStyles.buttonDisabled,
+          ]}
+        >
+          <MaterialIcons name="done-all" style={styles.settleIcon} />
+          <Text style={styles.settleButtonText}>Settle</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -118,6 +134,34 @@ const styles = StyleSheet.create({
   },
   addEntryButtonText: {
     color: colors.surface,
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.bold,
+  },
+  actionRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xl,
+    marginTop: spacing.section,
+  },
+  settleButton: {
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderColor: colors.border,
+    borderRadius: radii.control,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: spacing.md,
+    justifyContent: "center",
+    minHeight: sizes.controlMinHeight,
+    paddingHorizontal: spacing.section,
+  },
+  settleIcon: {
+    color: colors.primary,
+    fontSize: typography.sizes.title,
+    lineHeight: 18,
+  },
+  settleButtonText: {
+    color: colors.text,
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.bold,
   },
