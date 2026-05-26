@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, radii, sizes, spacing, typography } from "../theme";
 import type { SettingsTab } from "../types";
 
 const settingsTabs: SettingsTab[] = ["sources", "people"];
@@ -34,29 +35,29 @@ export function SettingsTabBar({
 const styles = StyleSheet.create({
   tabs: {
     flexDirection: "row",
-    gap: 6,
-    marginBottom: 14,
+    gap: spacing.md,
+    marginBottom: spacing.section,
   },
   tab: {
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: 42,
+    minHeight: sizes.tabMinHeight,
   },
   tabActive: {
-    backgroundColor: "#2e766f",
-    borderColor: "#2e766f",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   tabText: {
-    color: "#526062",
-    fontSize: 15,
-    fontWeight: "800",
+    color: colors.muted,
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.bold,
   },
   tabTextActive: {
-    color: "#ffffff",
+    color: colors.surface,
   },
 });

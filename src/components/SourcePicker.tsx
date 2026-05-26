@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, radii, spacing, typography } from "../theme";
 import type { PurchaseSource } from "../types";
 
 export function SourcePicker({
@@ -25,7 +26,7 @@ export function SourcePicker({
         <MaterialIcons
           name={isOpen ? "keyboard-arrow-up" : "keyboard-arrow-down"}
           size={22}
-          color="#526062"
+          color={colors.muted}
         />
       </Pressable>
       {isOpen && (
@@ -65,46 +66,46 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   label: {
-    color: "#526062",
-    fontSize: 15,
-    fontWeight: "700",
+    color: colors.muted,
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.semibold,
   },
   value: {
-    color: "#172426",
-    fontWeight: "800",
+    color: colors.text,
+    fontWeight: typography.weights.bold,
   },
   panel: {
-    marginTop: 10,
+    marginTop: spacing.xl,
   },
   pillRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginTop: 8,
+    gap: spacing.lg,
+    marginTop: spacing.lg,
   },
   pill: {
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 100,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.pill,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: spacing.panel,
+    paddingVertical: spacing.xl,
   },
   pillActive: {
-    backgroundColor: "#2e766f",
-    borderColor: "#2e766f",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   pillText: {
-    color: "#172426",
-    fontSize: 14,
-    fontWeight: "700",
+    color: colors.text,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
   },
   pillTextActive: {
-    color: "#ffffff",
+    color: colors.surface,
   },
   noSourcesText: {
-    color: "#687476",
-    fontSize: 13,
-    marginTop: 8,
+    color: colors.textMuted,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.lg,
   },
 });

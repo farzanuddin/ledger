@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, radii, spacing, typography } from "../theme";
 import type { Person, PurchaseSource, SettingsTab } from "../types";
 import { SettingsListSection } from "./SettingsListSection";
 import { SettingsTabBar } from "./SettingsTabBar";
@@ -55,7 +56,7 @@ export function SettingsModal({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Settings</Text>
             <Pressable onPress={onClose}>
-              <MaterialIcons name="close" size={24} color="#526062" />
+              <MaterialIcons name="close" size={24} color={colors.muted} />
             </Pressable>
           </View>
 
@@ -97,13 +98,13 @@ export function SettingsModal({
 const styles = StyleSheet.create({
   settingsOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: colors.overlay,
     justifyContent: "flex-end",
   },
   settingsContent: {
-    backgroundColor: "#f4f1ea",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: colors.background,
+    borderTopLeftRadius: radii.sheet,
+    borderTopRightRadius: radii.sheet,
     maxHeight: "82%",
     paddingBottom: 26,
   },
@@ -111,15 +112,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 20,
+    padding: spacing.modal,
     paddingBottom: 0,
   },
   modalTitle: {
-    color: "#172426",
-    fontSize: 18,
-    fontWeight: "800",
+    color: colors.text,
+    fontSize: typography.sizes.title,
+    fontWeight: typography.weights.bold,
   },
   formInModal: {
-    padding: 20,
+    padding: spacing.modal,
   },
 });

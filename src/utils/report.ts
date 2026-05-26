@@ -1,3 +1,4 @@
+import { colors } from "../theme";
 import type { LedgerEntry } from "../types";
 import { formatAmount, formatEntryDate } from "./format";
 
@@ -45,13 +46,13 @@ export const buildLedgerReportHtml = ({
         <style>
           * { box-sizing: border-box; }
           body {
-            color: #172426;
+            color: ${colors.text};
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             margin: 0;
             padding: 40px;
           }
           .kicker {
-            color: #526062;
+            color: ${colors.muted};
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.08em;
@@ -59,13 +60,13 @@ export const buildLedgerReportHtml = ({
           }
           h1 { font-size: 32px; margin: 6px 0 20px; }
           .summary {
-            border: 1px solid #d9d6ca;
+            border: 1px solid ${colors.border};
             border-radius: 12px;
             margin-bottom: 24px;
             padding: 18px;
           }
           .summary-label {
-            color: #526062;
+            color: ${colors.muted};
             font-size: 13px;
             font-weight: 700;
           }
@@ -76,8 +77,8 @@ export const buildLedgerReportHtml = ({
           }
           table { border-collapse: collapse; width: 100%; }
           th {
-            border-bottom: 1px solid #d9d6ca;
-            color: #526062;
+            border-bottom: 1px solid ${colors.border};
+            color: ${colors.muted};
             font-size: 12px;
             padding: 10px 0;
             text-align: left;
@@ -85,21 +86,21 @@ export const buildLedgerReportHtml = ({
           }
           th:last-child, td:last-child { text-align: right; }
           td {
-            border-bottom: 1px solid #ece8dd;
+            border-bottom: 1px solid ${colors.reportBorder};
             padding: 14px 0;
             vertical-align: top;
           }
           td span {
-            color: #687476;
+            color: ${colors.textMuted};
             display: block;
             font-size: 12px;
             margin-top: 4px;
           }
-          .positive { color: #2e766f; font-weight: 800; }
-          .negative { color: #b14a3b; font-weight: 800; }
-          .empty { color: #687476; padding: 24px 0; }
+          .positive { color: ${colors.primary}; font-weight: 800; }
+          .negative { color: ${colors.danger}; font-weight: 800; }
+          .empty { color: ${colors.textMuted}; padding: 24px 0; }
           .footer {
-            color: #687476;
+            color: ${colors.textMuted};
             font-size: 11px;
             margin-top: 28px;
           }

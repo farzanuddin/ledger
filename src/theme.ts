@@ -1,0 +1,76 @@
+export const colors = {
+  background: "#f4f1ea",
+  border: "#d9d6ca",
+  danger: "#b14a3b",
+  muted: "#526062",
+  primary: "#2e766f",
+  placeholder: "#7f8a8d",
+  reportBorder: "#ece8dd",
+  surface: "#ffffff",
+  syncText: "#6b7678",
+  text: "#172426",
+  textMuted: "#687476",
+  overlay: "rgba(0,0,0,0.4)",
+} as const;
+
+export const radii = {
+  control: 8,
+  dialog: 12,
+  sheet: 16,
+  pill: 100,
+} as const;
+
+export const sizes = {
+  compactIconButton: 34,
+  balanceIconButton: 36,
+  tabMinHeight: 42,
+  controlMinHeight: 44,
+  largeControlMinHeight: 50,
+  iconButton: 44,
+  modalActionMinHeight: 48,
+} as const;
+
+export const spacing = {
+  xxs: 2,
+  xs: 3,
+  sm: 4,
+  md: 6,
+  lg: 8,
+  xl: 10,
+  xxl: 12,
+  section: 14,
+  panel: 16,
+  card: 18,
+  modal: 20,
+  screen: 20,
+  page: 24,
+} as const;
+
+export const typography = {
+  sizes: {
+    xxs: 11,
+    xs: 12,
+    sm: 13,
+    md: 14,
+    base: 15,
+    input: 16,
+    title: 18,
+    icon: 21,
+    balance: 42,
+  },
+  weights: {
+    semibold: "700",
+    bold: "800",
+    heavy: "900",
+  },
+} as const;
+
+export const opacity = {
+  disabled: 0.6,
+  pressed: 0.86,
+} as const;
+
+export const commonStyles = {
+  buttonPressed: { opacity: opacity.pressed },
+  buttonDisabled: { opacity: opacity.disabled },
+} as const;

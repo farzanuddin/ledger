@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, radii, spacing, typography } from "../theme";
 import type { LedgerEntry } from "../types";
 import { formatDecimalAmount, formatEntryDate } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
@@ -61,7 +62,7 @@ const EntryRow = memo(function EntryRow({
       <View style={styles.entryAmountBlock}>
         <View style={styles.entryAmountRow}>
           <AedSymbol
-            color={entry.amountCents < 0 ? "#b14a3b" : "#2e766f"}
+            color={entry.amountCents < 0 ? colors.danger : colors.primary}
             size="small"
           />
           <Text
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    padding: 20,
+    padding: spacing.modal,
     paddingBottom: 32,
   },
   emptyState: {
@@ -96,35 +97,35 @@ const styles = StyleSheet.create({
     paddingVertical: 42,
   },
   emptyTitle: {
-    color: "#172426",
-    fontSize: 18,
-    fontWeight: "800",
+    color: colors.text,
+    fontSize: typography.sizes.title,
+    fontWeight: typography.weights.bold,
   },
   emptyBody: {
-    color: "#687476",
-    fontSize: 14,
-    marginTop: 6,
+    color: colors.textMuted,
+    fontSize: typography.sizes.md,
+    marginTop: spacing.md,
     textAlign: "center",
   },
   entryRow: {
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 10,
-    padding: 14,
+    gap: spacing.xxl,
+    marginBottom: spacing.xl,
+    padding: spacing.section,
   },
   entryText: {
     flex: 1,
     overflow: "hidden",
   },
   entryNote: {
-    color: "#172426",
-    fontSize: 16,
-    fontWeight: "800",
+    color: colors.text,
+    fontSize: typography.sizes.input,
+    fontWeight: typography.weights.bold,
     ...Platform.select({
       web: {
         overflow: "hidden",
@@ -134,9 +135,9 @@ const styles = StyleSheet.create({
     }),
   },
   entryMeta: {
-    color: "#687476",
-    fontSize: 13,
-    marginTop: 4,
+    color: colors.textMuted,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.sm,
     ...Platform.select({
       web: {
         overflow: "hidden",
@@ -151,22 +152,22 @@ const styles = StyleSheet.create({
   entryAmountRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 3,
+    gap: spacing.xs,
   },
   entryAmount: {
-    fontSize: 16,
-    fontWeight: "900",
+    fontSize: typography.sizes.input,
+    fontWeight: typography.weights.heavy,
   },
   positiveAmount: {
-    color: "#2e766f",
+    color: colors.primary,
   },
   negativeAmount: {
-    color: "#b14a3b",
+    color: colors.danger,
   },
   deleteText: {
-    color: "#687476",
-    fontSize: 12,
-    fontWeight: "700",
-    marginTop: 8,
+    color: colors.textMuted,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    marginTop: spacing.lg,
   },
 });

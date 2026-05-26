@@ -1,4 +1,5 @@
 import { StyleSheet, TextInput, View } from "react-native";
+import { colors, radii, sizes, spacing, typography } from "../theme";
 import { sanitizeAmountInput } from "../utils/validation";
 
 export function EntryFields({
@@ -18,14 +19,14 @@ export function EntryFields({
         keyboardType="decimal-pad"
         onChangeText={(text) => onAmountChange(sanitizeAmountInput(text))}
         placeholder="Amount"
-        placeholderTextColor="#7f8a8d"
+        placeholderTextColor={colors.placeholder}
         style={[styles.input, styles.amountInput]}
         value={amount}
       />
       <TextInput
         onChangeText={onNoteChange}
         placeholder="Note"
-        placeholderTextColor="#7f8a8d"
+        placeholderTextColor={colors.placeholder}
         style={styles.input}
         value={note}
       />
@@ -36,20 +37,20 @@ export function EntryFields({
 const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
-    gap: 10,
-    marginTop: 14,
+    gap: spacing.xl,
+    marginTop: spacing.section,
   },
   input: {
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
-    color: "#172426",
+    color: colors.text,
     flex: 1,
-    fontSize: 16,
-    minHeight: 50,
+    fontSize: typography.sizes.input,
+    minHeight: sizes.largeControlMinHeight,
     minWidth: 0,
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.section,
   },
   amountInput: {
     flex: 0.55,

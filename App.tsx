@@ -17,6 +17,7 @@ import { SettingsModal } from "./src/components/SettingsModal";
 import { useConfirmAction } from "./src/hooks/useConfirmAction";
 import { useLedgerData } from "./src/hooks/useLedgerData";
 import { useLedgerSharing } from "./src/hooks/useLedgerSharing";
+import { colors, spacing } from "./src/theme";
 import type { LedgerEntry, Person, PurchaseSource, SettingsTab } from "./src/types";
 import { formatDecimalAmount, formatPeopleCountLabel } from "./src/utils/format";
 
@@ -235,7 +236,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f1ea",
+    backgroundColor: colors.background,
     ...Platform.select({
       web: {
         alignItems: "center",
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    backgroundColor: "#f4f1ea",
+    backgroundColor: colors.background,
     ...Platform.select({
       web: {
         maxWidth: 430,
@@ -257,11 +258,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   balancePanelWrap: {
-    paddingHorizontal: 20,
-    paddingBottom: 14,
+    paddingHorizontal: spacing.screen,
+    paddingBottom: spacing.section,
   },
   nonScrollContent: {
     flexShrink: 0,
-    paddingTop: 20,
+    paddingTop: spacing.screen,
   },
 });

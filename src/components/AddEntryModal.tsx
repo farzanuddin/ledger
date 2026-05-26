@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
 import type { PurchaseSource } from "../types";
 import { validateEntryInput } from "../utils/validation";
 import { EntryFields } from "./EntryFields";
@@ -55,7 +56,7 @@ export function AddEntryModal({
       <View style={styles.modalHeader}>
         <Text style={styles.modalTitle}>New entry</Text>
         <Pressable onPress={onClose}>
-          <MaterialIcons name="close" size={24} color="#526062" />
+          <MaterialIcons name="close" size={24} color={colors.muted} />
         </Pressable>
       </View>
 
@@ -80,8 +81,8 @@ export function AddEntryModal({
           onPress={submit}
           style={({ pressed }) => [
             styles.addButton,
-            pressed && isFormValid && styles.buttonPressed,
-            (isSaving || !isFormValid) && styles.buttonDisabled,
+            pressed && isFormValid && commonStyles.buttonPressed,
+            (isSaving || !isFormValid) && commonStyles.buttonDisabled,
           ]}
         >
           <Text style={styles.addButtonText}>
@@ -98,34 +99,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 20,
+    padding: spacing.modal,
     paddingBottom: 0,
   },
   modalTitle: {
-    color: "#172426",
-    fontSize: 18,
-    fontWeight: "800",
+    color: colors.text,
+    fontSize: typography.sizes.title,
+    fontWeight: typography.weights.bold,
   },
   formInModal: {
-    padding: 20,
+    padding: spacing.modal,
   },
   addButton: {
     alignItems: "center",
-    backgroundColor: "#2e766f",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.control,
     justifyContent: "center",
-    marginTop: 14,
-    minHeight: 50,
+    marginTop: spacing.section,
+    minHeight: sizes.largeControlMinHeight,
   },
   addButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  buttonPressed: {
-    opacity: 0.86,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
+    color: colors.surface,
+    fontSize: typography.sizes.input,
+    fontWeight: typography.weights.bold,
   },
 });

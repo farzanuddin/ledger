@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
 import { firebaseIsConfigured } from "../firebase";
 import { formatDecimalAmount } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
@@ -19,7 +20,7 @@ export function BalancePanel({
     <View style={styles.balancePanel}>
       <Text style={styles.balanceLabel}>Total purchases</Text>
       <View style={styles.balanceAmountRow}>
-        <AedSymbol color={balanceCents < 0 ? "#b14a3b" : "#172426"} size="large" />
+        <AedSymbol color={balanceCents < 0 ? colors.danger : colors.text} size="large" />
         <Text
           style={[
             styles.balanceAmount,
@@ -36,8 +37,8 @@ export function BalancePanel({
           onPress={onSharePdf}
           style={({ pressed }) => [
             styles.balanceIconButton,
-            pressed && styles.buttonPressed,
-            isSharing && styles.buttonDisabled,
+            pressed && commonStyles.buttonPressed,
+            isSharing && commonStyles.buttonDisabled,
           ]}
         >
           <MaterialIcons
@@ -58,81 +59,72 @@ export function BalancePanel({
 
 const styles = StyleSheet.create({
   balancePanel: {
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
-    marginTop: 6,
-    padding: 18,
+    marginTop: spacing.md,
+    padding: spacing.card,
   },
   balanceLabel: {
-    color: "#526062",
-    fontSize: 14,
-    fontWeight: "700",
+    color: colors.muted,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
   },
   balanceAmountRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 8,
-    marginTop: 4,
+    gap: spacing.lg,
+    marginTop: spacing.sm,
   },
   balanceAmount: {
-    color: "#172426",
-    fontSize: 42,
-    fontWeight: "800",
+    color: colors.text,
+    fontSize: typography.sizes.balance,
+    fontWeight: typography.weights.bold,
     letterSpacing: 0,
-    marginTop: 4,
+    marginTop: spacing.sm,
   },
   balanceIconButton: {
     alignItems: "center",
-    backgroundColor: "#f4f1ea",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.background,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
-    height: 36,
+    height: sizes.balanceIconButton,
     justifyContent: "center",
     marginLeft: "auto",
-    width: 36,
+    width: sizes.balanceIconButton,
   },
   balanceIcon: {
-    color: "#2e766f",
-    fontSize: 21,
+    color: colors.primary,
+    fontSize: typography.sizes.icon,
     lineHeight: 21,
     includeFontPadding: false,
     textAlign: "center",
     textAlignVertical: "center",
   },
   syncLabel: {
-    color: "#6b7678",
-    fontSize: 13,
-    marginTop: 8,
+    color: colors.syncText,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.lg,
   },
   addEntryButton: {
     alignItems: "center",
-    backgroundColor: "#2e766f",
-    borderRadius: 8,
-    marginTop: 14,
-    minHeight: 44,
+    backgroundColor: colors.primary,
+    borderRadius: radii.control,
+    marginTop: spacing.section,
+    minHeight: sizes.controlMinHeight,
     justifyContent: "center",
   },
   addEntryButtonText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  positiveAmount: {
-    color: "#2e766f",
+    color: colors.surface,
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.bold,
   },
   negativeAmount: {
-    color: "#b14a3b",
+    color: colors.danger,
   },
   totalAmount: {
-    color: "#172426",
-  },
-  buttonPressed: {
-    opacity: 0.86,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
+    color: colors.text,
   },
 });

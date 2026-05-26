@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
 import type { Person } from "../types";
 
 export function AppHeader({
@@ -29,7 +30,7 @@ export function AppHeader({
             onPress={onOpenSettings}
             style={({ pressed }) => [
               styles.headerIconButton,
-              pressed && styles.buttonPressed,
+              pressed && commonStyles.buttonPressed,
             ]}
           >
             <MaterialIcons name="settings" style={styles.headerIcon} />
@@ -40,8 +41,8 @@ export function AppHeader({
             onPress={onRefresh}
             style={({ pressed }) => [
               styles.headerIconButton,
-              pressed && styles.buttonPressed,
-              isRefreshing && styles.buttonDisabled,
+              pressed && commonStyles.buttonPressed,
+              isRefreshing && commonStyles.buttonDisabled,
             ]}
           >
             <MaterialIcons
@@ -74,8 +75,8 @@ export function AppHeader({
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
+    paddingHorizontal: spacing.screen,
+    paddingTop: spacing.card,
     paddingBottom: 0,
   },
   headerTopRow: {
@@ -86,63 +87,57 @@ const styles = StyleSheet.create({
   headerActions: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 6,
+    gap: spacing.md,
   },
   headerIconButton: {
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
-    height: 34,
+    height: sizes.compactIconButton,
     justifyContent: "center",
-    width: 34,
+    width: sizes.compactIconButton,
   },
   headerIcon: {
-    color: "#526062",
-    fontSize: 21,
+    color: colors.muted,
+    fontSize: typography.sizes.icon,
     lineHeight: 21,
     includeFontPadding: false,
     textAlign: "center",
     textAlignVertical: "center",
   },
   kicker: {
-    color: "#526062",
-    fontSize: 13,
-    fontWeight: "700",
+    color: colors.muted,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
     letterSpacing: 0,
     textTransform: "uppercase",
   },
   tabBar: {
     flexDirection: "row",
-    marginTop: 10,
+    marginTop: spacing.xl,
   },
   tab: {
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.control,
     flex: 1,
-    marginHorizontal: 3,
-    paddingVertical: 10,
+    marginHorizontal: spacing.xs,
+    paddingVertical: spacing.xl,
   },
   tabActive: {
-    backgroundColor: "#2e766f",
-    borderColor: "#2e766f",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   tabText: {
-    color: "#526062",
-    fontSize: 15,
-    fontWeight: "700",
+    color: colors.muted,
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.semibold,
   },
   tabTextActive: {
-    color: "#ffffff",
-  },
-  buttonPressed: {
-    opacity: 0.86,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
+    color: colors.surface,
   },
 });

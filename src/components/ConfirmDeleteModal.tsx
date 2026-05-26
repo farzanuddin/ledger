@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, radii, sizes, spacing, typography } from "../theme";
 
 export function ConfirmDeleteModal({
   body,
@@ -28,7 +29,7 @@ export function ConfirmDeleteModal({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{title}</Text>
             <Pressable onPress={onCancel}>
-              <MaterialIcons name="close" size={24} color="#526062" />
+              <MaterialIcons name="close" size={24} color={colors.muted} />
             </Pressable>
           </View>
 
@@ -54,14 +55,14 @@ export function ConfirmDeleteModal({
 const styles = StyleSheet.create({
   confirmOverlay: {
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: colors.overlay,
     flex: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: spacing.modal,
   },
   confirmContent: {
-    backgroundColor: "#f4f1ea",
-    borderRadius: 12,
+    backgroundColor: colors.background,
+    borderRadius: radii.dialog,
     maxWidth: 390,
     width: "100%",
   },
@@ -69,58 +70,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 20,
+    padding: spacing.modal,
     paddingBottom: 0,
   },
   modalTitle: {
-    color: "#172426",
-    fontSize: 18,
-    fontWeight: "800",
+    color: colors.text,
+    fontSize: typography.sizes.title,
+    fontWeight: typography.weights.bold,
   },
   formInModal: {
-    padding: 20,
+    padding: spacing.modal,
   },
   deleteConfirmText: {
-    color: "#172426",
-    fontSize: 16,
-    fontWeight: "800",
-    marginBottom: 4,
+    color: colors.text,
+    fontSize: typography.sizes.input,
+    fontWeight: typography.weights.bold,
+    marginBottom: spacing.sm,
   },
   deleteConfirmMeta: {
-    color: "#687476",
-    fontSize: 14,
+    color: colors.textMuted,
+    fontSize: typography.sizes.md,
   },
   deleteConfirmButtons: {
     flexDirection: "row",
-    gap: 10,
-    marginTop: 20,
+    gap: spacing.xl,
+    marginTop: spacing.modal,
   },
   deleteCancelButton: {
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: 48,
+    minHeight: sizes.modalActionMinHeight,
   },
   deleteCancelText: {
-    color: "#526062",
-    fontSize: 16,
-    fontWeight: "700",
+    color: colors.muted,
+    fontSize: typography.sizes.input,
+    fontWeight: typography.weights.semibold,
   },
   deleteConfirmButton: {
     alignItems: "center",
-    backgroundColor: "#b14a3b",
-    borderRadius: 8,
+    backgroundColor: colors.danger,
+    borderRadius: radii.control,
     flex: 1,
     justifyContent: "center",
-    minHeight: 48,
+    minHeight: sizes.modalActionMinHeight,
   },
   deleteConfirmButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "800",
+    color: colors.surface,
+    fontSize: typography.sizes.input,
+    fontWeight: typography.weights.bold,
   },
 });

@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
 
 type SettingsItem = {
   id: string;
@@ -34,7 +35,7 @@ export function SettingsListSection<T extends SettingsItem>({
           onChangeText={onChangeNewValue}
           onSubmitEditing={onAdd}
           placeholder={addPlaceholder}
-          placeholderTextColor="#7f8a8d"
+          placeholderTextColor={colors.placeholder}
           style={styles.addInput}
           value={newValue}
         />
@@ -43,11 +44,11 @@ export function SettingsListSection<T extends SettingsItem>({
           onPress={onAdd}
           style={({ pressed }) => [
             styles.addButton,
-            pressed && styles.buttonPressed,
-            isSaving && styles.buttonDisabled,
+            pressed && commonStyles.buttonPressed,
+            isSaving && commonStyles.buttonDisabled,
           ]}
         >
-          <MaterialIcons name="add" size={22} color="#ffffff" />
+          <MaterialIcons name="add" size={22} color={colors.surface} />
         </Pressable>
       </View>
 
@@ -63,10 +64,10 @@ export function SettingsListSection<T extends SettingsItem>({
               onPress={() => onDelete(item)}
               style={({ pressed }) => [
                 styles.deleteButton,
-                pressed && styles.buttonPressed,
+                pressed && commonStyles.buttonPressed,
               ]}
             >
-              <MaterialIcons name="delete-outline" size={21} color="#b14a3b" />
+              <MaterialIcons name="delete-outline" size={21} color={colors.danger} />
             </Pressable>
           </View>
         ))}
@@ -81,66 +82,60 @@ export function SettingsListSection<T extends SettingsItem>({
 const styles = StyleSheet.create({
   addRow: {
     flexDirection: "row",
-    gap: 8,
-    marginBottom: 10,
+    gap: spacing.lg,
+    marginBottom: spacing.xl,
   },
   addInput: {
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
-    color: "#172426",
+    color: colors.text,
     flex: 1,
-    fontSize: 15,
-    minHeight: 44,
-    paddingHorizontal: 12,
+    fontSize: typography.sizes.base,
+    minHeight: sizes.controlMinHeight,
+    paddingHorizontal: spacing.xxl,
   },
   addButton: {
     alignItems: "center",
-    backgroundColor: "#2e766f",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.control,
     justifyContent: "center",
-    width: 44,
+    width: sizes.controlMinHeight,
   },
   settingsList: {
     maxHeight: 360,
   },
   listContent: {
-    gap: 8,
-    paddingTop: 2,
+    gap: spacing.lg,
+    paddingTop: spacing.xxs,
   },
   row: {
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#d9d6ca",
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     borderWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
-    minHeight: 48,
-    paddingLeft: 14,
+    minHeight: sizes.modalActionMinHeight,
+    paddingLeft: spacing.section,
   },
   rowText: {
-    color: "#172426",
+    color: colors.text,
     flex: 1,
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.bold,
   },
   deleteButton: {
     alignItems: "center",
-    height: 48,
+    height: sizes.iconButton,
     justifyContent: "center",
-    width: 48,
+    width: sizes.iconButton,
   },
   emptyText: {
-    color: "#687476",
-    fontSize: 13,
-    marginTop: 8,
-  },
-  buttonPressed: {
-    opacity: 0.86,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
+    color: colors.textMuted,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.lg,
   },
 });
