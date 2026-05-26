@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ledger",
+    "name": "Ledger",
     "slug": "ledger",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,6 +13,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "bundleIdentifier": "com.farzan.ledger",
       "supportsTablet": true
     },
     "android": {
@@ -20,11 +21,21 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.farzan.ledger",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d9f08f8b-750c-4a34-ba52-67b95cbb01ae"
+      }
+    },
+    "owner": "farzanuddin",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

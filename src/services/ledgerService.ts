@@ -1,0 +1,140 @@
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  type Unsubscribe,
+} from "firebase/firestore";
+
+import { ledgerId } from "../constants";
+import { db } from "../firebase";
+import { entriesFromDocs, peopleFromDocs, sourcesFromDocs } from "../firestoreMappers";
+import type { LedgerEntry, Person, PurchaseSource } from "../types";
+
+export const subscribeToPeople = ({
+  onData,
+  onError,
+}: {
+  onData: (people: Person[]) => void;
+  onError: (error: Error) => void;
+}): Unsubscribe | undefined => {
+  if (!db) return undefined;
+
+  const peopleQuery = query(collection(db, "people"), orderBy("name"));
+
+  return onSnapshot(
+    peopleQuery,
+    (snapshot) => onData(peopleFromDocs(snapshot.docs)),
+    onError,
+  );
+};
+
+export const subscribeToSources = ({
+  onData,
+  onError,
+}: {
+  onData: (sources: PurchaseSource[]) => void;
+  onError: (error: Error) => void;
+}): Unsubscribe | undefined => {
+  if (!db) return undefined;
+
+  const sourcesQuery = query(collection(db, "purchaseSources"), orderBy("name", "asc"));
+
+  return onSnapshot(
+    sourcesQuery,
+    (snapshot) => onData(sourcesFromDocs(snapshot.docs)),
+    onError,
+  );
+};
+
+export const subscribeToEntries = ({
+  onData,
+  onError,
+  personId,
+}: {
+  onData: (entries: LedgerEntry[]) => void;
+  onError: (error: Error) => void;
+  personId: string;
+}): Unsubscribe | undefined => {
+  if (!db) return undefined;
+
+  const entriesQuery = query(
+    collection(db, "ledgers", ledgerId(personId), "entries"),
+    orderBy("createdAt", "desc"),
+  );
+
+  return onSnapshot(
+    entriesQuery,
+    (snapshot) => onData(entriesFromDocs(snapshot.docs)),
+    onError,
+  );
+};
+
+export const createEntry = async (entry: LedgerEntry) => {
+  if (!db) return;
+
+  await addDoc(collection(db, "ledgers", ledgerId(entry.personId), "entries"), {
+    amountCents: entry.amountCents,
+    source: entry.source,
+    note: entry.note,
+    personId: entry.personId,
+    user: entry.user,
+    createdAt: serverTimestamp(),
+  });
+};
+
+export const fetchEntries = async (personId: string) => {
+  if (!db) return [];
+
+  const snapshot = await getDocs(
+    query(
+      collection(db, "ledgers", ledgerId(personId), "entries"),
+      orderBy("createdAt", "desc"),
+    ),
+  );
+
+  return entriesFromDocs(snapshot.docs);
+};
+
+export const deleteEntry = async (entry: LedgerEntry) => {
+  if (!db) return;
+
+  await deleteDoc(doc(db, "ledgers", ledgerId(entry.personId), "entries", entry.id));
+};
+
+export const createPerson = async (name: string) => {
+  if (!db) return "";
+
+  const personRef = await addDoc(collection(db, "people"), {
+    name,
+    createdAt: serverTimestamp(),
+  });
+
+  return personRef.id;
+};
+
+export const deletePerson = async (person: Person) => {
+  if (!db) return;
+
+  await deleteDoc(doc(db, "people", person.id));
+};
+
+export const createPurchaseSource = async (name: string) => {
+  if (!db) return;
+
+  await addDoc(collection(db, "purchaseSources"), {
+    name,
+    createdAt: serverTimestamp(),
+  });
+};
+
+export const deletePurchaseSource = async (source: PurchaseSource) => {
+  if (!db) return;
+
+  await deleteDoc(doc(db, "purchaseSources", source.id));
+};
