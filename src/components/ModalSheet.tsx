@@ -1,14 +1,16 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { Animated, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Animated, Modal, Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 import { colors, radii } from "../theme";
 
 export function ModalSheet({
   children,
+  contentStyle,
   onClose,
   visible,
 }: {
   children: ReactNode;
+  contentStyle?: ViewStyle;
   onClose: () => void;
   visible: boolean;
 }) {
@@ -56,7 +58,7 @@ export function ModalSheet({
             }}
           >
             <Pressable onPress={() => {}}>
-              <View style={styles.content}>{children}</View>
+              <View style={[styles.content, contentStyle]}>{children}</View>
             </Pressable>
           </Animated.View>
         </Pressable>
