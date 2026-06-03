@@ -3,15 +3,15 @@ import { useCallback, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StyleSheet,
   View,
 } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { AddEntryModal } from "./src/components/AddEntryModal";
 import { AppHeader } from "./src/components/AppHeader";
 import { BalancePanel } from "./src/components/BalancePanel";
-import { ConfirmModal } from "./src/components/ConfirmModal";
+import { ConfirmModals } from "./src/components/ConfirmModals";
 import { EntryList } from "./src/components/EntryList";
 import { SettingsModal } from "./src/components/SettingsModal";
 import { useConfirmAction } from "./src/hooks/useConfirmAction";
@@ -19,7 +19,7 @@ import { useLedger } from "./src/hooks/useLedger";
 import { useLedgerSharing } from "./src/hooks/useLedgerSharing";
 import { colors, spacing } from "./src/theme";
 import type { Entry, Person, Source } from "./src/types";
-import { formatDecimalAmount, formatPeopleCountLabel } from "./src/utils/format";
+import { formatPeopleCountLabel } from "./src/utils/format";
 
 export default function App() {
   const ledger = useLedger();
@@ -32,6 +32,7 @@ export default function App() {
   const settleConfirm = useConfirmAction<void>();
 
   const peopleCountLabel = formatPeopleCountLabel(ledger.people.length);
+  const isLedgerDisabled = !ledger.ready;
 
   const handleSharePdf = useCallback(
     () =>
@@ -44,8 +45,9 @@ export default function App() {
   );
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+    <SafeAreaProvider>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
         <StatusBar style="dark" />
         <KeyboardAvoidingView
           behavior={Platform.select({ ios: "padding", android: undefined })}
@@ -53,8 +55,7 @@ export default function App() {
         >
           <View style={styles.nonScrollContent}>
             <AppHeader
-              isDisabled={!ledger.ready}
-              isRefreshing={ledger.loading.refreshing}
+              isDisabled={isLedgerDisabled}
               onOpenSettings={() => setSettingsModalVisible(true)}
               onRefresh={ledger.actions.refreshEntries}
               onSelectPerson={ledger.actions.selectPerson}
@@ -65,7 +66,7 @@ export default function App() {
             <View style={styles.balancePanelWrap}>
               <BalancePanel
                 balanceCents={ledger.balanceCents}
-                isDisabled={!ledger.ready}
+                isDisabled={isLedgerDisabled}
                 isSharing={isSharing}
                 onAddEntry={() => setAddEntryModalVisible(true)}
                 onSharePdf={handleSharePdf}
@@ -117,92 +118,7 @@ export default function App() {
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
-  );
-}
-
-function ConfirmModals({
-  balanceCents,
-  entryDelete,
-  onRemoveEntry,
-  onRemovePerson,
-  onRemoveSource,
-  onSettleBalance,
-  personDelete,
-  settleConfirm,
-  sourceDelete,
-}: {
-  balanceCents: number;
-  entryDelete: ReturnType<typeof useConfirmAction<Entry>>;
-  onRemoveEntry: (entry: Entry) => Promise<void>;
-  onRemovePerson: (person: Person) => Promise<void>;
-  onRemoveSource: (source: Source) => Promise<void>;
-  onSettleBalance: () => Promise<boolean>;
-  personDelete: ReturnType<typeof useConfirmAction<Person>>;
-  settleConfirm: ReturnType<typeof useConfirmAction<void>>;
-  sourceDelete: ReturnType<typeof useConfirmAction<Source>>;
-}) {
-  return (
-    <>
-      <ConfirmModal
-        body={entryDelete.item?.note || "Untitled entry"}
-        meta={
-          entryDelete.item
-            ? `${entryDelete.item.source} · ${formatDecimalAmount(
-                Math.abs(entryDelete.item.amountCents) / 100,
-              )} AED`
-            : undefined
-        }
-        onCancel={entryDelete.clear}
-        onConfirm={async () => {
-          if (!entryDelete.item) return;
-          await onRemoveEntry(entryDelete.item);
-          entryDelete.clear();
-        }}
-        title="Delete entry?"
-        visible={entryDelete.visible}
-      />
-
-      <ConfirmModal
-        body={sourceDelete.item?.name || ""}
-        meta="This permanently removes the source option. Existing entries that already use it will keep their source name."
-        onCancel={sourceDelete.clear}
-        onConfirm={async () => {
-          if (!sourceDelete.item) return;
-          await onRemoveSource(sourceDelete.item);
-          sourceDelete.clear();
-        }}
-        title="Delete source?"
-        visible={sourceDelete.visible}
-      />
-
-      <ConfirmModal
-        body="This keeps the existing ledger history and brings the current balance to zero."
-        confirmLabel="Settle"
-        onCancel={settleConfirm.clear}
-        onConfirm={async () => {
-          await onSettleBalance();
-          settleConfirm.clear();
-        }}
-        title={`Settle balance of AED ${formatDecimalAmount(
-          Math.abs(balanceCents) / 100,
-        )}?`}
-        variant="primary"
-        visible={settleConfirm.visible}
-      />
-
-      <ConfirmModal
-        body={personDelete.item?.name || ""}
-        meta="This removes the person from the ledger tabs. Their existing entries are not deleted from Firestore."
-        onCancel={personDelete.clear}
-        onConfirm={async () => {
-          if (!personDelete.item) return;
-          await onRemovePerson(personDelete.item);
-          personDelete.clear();
-        }}
-        title="Delete person?"
-        visible={personDelete.visible}
-      />
-    </>
+    </SafeAreaProvider>
   );
 }
 

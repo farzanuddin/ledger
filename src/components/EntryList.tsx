@@ -1,10 +1,18 @@
 import { memo, useCallback } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
+import { colors, radii, sizes, spacing, typography, withButtonState } from "../theme";
 import type { Entry } from "../types";
 import { formatDecimalAmount, formatEntryDate } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
+
+const textTruncate = Platform.select({
+  web: {
+    overflow: "hidden" as const,
+    textOverflow: "ellipsis" as const,
+    whiteSpace: "nowrap" as const,
+  },
+});
 
 export function EntryList({
   entries,
@@ -80,10 +88,7 @@ const EntryRow = memo(function EntryRow({
         <Pressable
           accessibilityLabel={`Delete ${entry.note || "entry"}`}
           onPress={() => onRequestDelete(entry)}
-          style={({ pressed }) => [
-            styles.deleteButton,
-            pressed && commonStyles.buttonPressed,
-          ]}
+          style={withButtonState(styles.deleteButton, false)}
         >
           <MaterialIcons name="delete-outline" style={styles.deleteIcon} />
         </Pressable>
@@ -134,25 +139,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: typography.sizes.input,
     fontWeight: typography.weights.bold,
-    ...Platform.select({
-      web: {
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      },
-    }),
+    ...textTruncate,
   },
   entryMeta: {
     color: colors.textMuted,
     fontSize: typography.sizes.sm,
     marginTop: spacing.sm,
-    ...Platform.select({
-      web: {
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      },
-    }),
+    ...textTruncate,
   },
   entryAmountBlock: {
     alignItems: "flex-end",

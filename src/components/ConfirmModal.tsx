@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, radii, sizes, spacing, typography } from "../theme";
+import { colors, modalStyles, radii, sizes, spacing, typography } from "../theme";
 import { ModalSheet } from "./ModalSheet";
 
 export function ConfirmModal({
@@ -24,14 +24,14 @@ export function ConfirmModal({
 }) {
   return (
     <ModalSheet visible={visible} onClose={onCancel}>
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>{title}</Text>
+      <View style={modalStyles.header}>
+        <Text style={modalStyles.title}>{title}</Text>
         <Pressable onPress={onCancel}>
           <MaterialIcons name="close" size={24} color={colors.muted} />
         </Pressable>
       </View>
 
-      <View style={styles.formInModal}>
+      <View style={modalStyles.body}>
         <Text style={styles.confirmText}>{body}</Text>
         {meta ? <Text style={styles.confirmMeta}>{meta}</Text> : null}
 
@@ -55,21 +55,6 @@ export function ConfirmModal({
 }
 
 const styles = StyleSheet.create({
-  modalHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: spacing.modal,
-    paddingBottom: 0,
-  },
-  modalTitle: {
-    color: colors.text,
-    fontSize: typography.sizes.title,
-    fontWeight: typography.weights.bold,
-  },
-  formInModal: {
-    padding: spacing.modal,
-  },
   confirmText: {
     color: colors.text,
     fontSize: typography.sizes.input,

@@ -16,6 +16,5 @@ export type Entry = {
   source: string;
   note: string;
   personId: string;
-  user: string;
   createdAt: Date;
 };

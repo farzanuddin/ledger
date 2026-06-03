@@ -66,7 +66,37 @@ export const opacity = {
   pressed: 0.86,
 } as const;
 
+import type { ViewStyle } from "react-native";
+
 export const commonStyles = {
   buttonPressed: { opacity: opacity.pressed },
   buttonDisabled: { opacity: opacity.disabled },
 } as const;
+
+export const modalStyles = {
+  header: {
+    alignItems: "center" as const,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    padding: spacing.modal,
+    paddingBottom: 0,
+  },
+  title: {
+    color: colors.text,
+    fontSize: typography.sizes.title,
+    fontWeight: typography.weights.bold,
+  },
+  body: {
+    padding: spacing.modal,
+  },
+};
+
+type PressableStyle = ViewStyle | false | undefined | null;
+
+export const withButtonState =
+  (base: ViewStyle, isDisabled: boolean) =>
+  ({ pressed }: { pressed: boolean }): PressableStyle[] => [
+    base,
+    pressed && !isDisabled && commonStyles.buttonPressed,
+    isDisabled && commonStyles.buttonDisabled,
+  ];

@@ -1,11 +1,15 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
+import { colors, commonStyles, modalStyles, radii, sizes, spacing, typography, withButtonState } from "../theme";
 import type { Source } from "../types";
-import { getPreferredSourceName } from "../utils/ledger";
 import { sanitizeAmountInput, validateEntryInput } from "../utils/validation";
 import { ModalSheet } from "./ModalSheet";
+
+const getPreferredSourceName = (sources: Source[]) =>
+  sources.find((source) => source.name.toLowerCase() === "default")?.name ||
+  sources[0]?.name ||
+  "";
 
 export function AddEntryModal({
   isSaving,
@@ -49,14 +53,14 @@ export function AddEntryModal({
 
   return (
     <ModalSheet visible={visible} onClose={closeModal}>
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>New entry</Text>
+      <View style={modalStyles.header}>
+        <Text style={modalStyles.title}>New entry</Text>
         <Pressable onPress={closeModal}>
           <MaterialIcons name="close" size={24} color={colors.muted} />
         </Pressable>
       </View>
 
-      <View style={styles.formInModal}>
+      <View style={modalStyles.body}>
         <SourcePicker
           isOpen={form.sourcePickerOpen}
           onSelectSource={form.selectSource}
@@ -79,11 +83,7 @@ export function AddEntryModal({
         <Pressable
           disabled={isSaving}
           onPress={submit}
-          style={({ pressed }) => [
-            styles.addButton,
-            pressed && !isSaving && commonStyles.buttonPressed,
-            isSaving && commonStyles.buttonDisabled,
-          ]}
+          style={withButtonState(styles.addButton, isSaving)}
         >
           <Text style={styles.addButtonText}>
             {isSaving ? "Saving..." : "Add entry"}
@@ -95,22 +95,6 @@ export function AddEntryModal({
 }
 
 const styles = StyleSheet.create({
-  // Modal shell
-  modalHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: spacing.modal,
-    paddingBottom: 0,
-  },
-  modalTitle: {
-    color: colors.text,
-    fontSize: typography.sizes.title,
-    fontWeight: typography.weights.bold,
-  },
-  formInModal: {
-    padding: spacing.modal,
-  },
   // Submit state
   addButton: {
     alignItems: "center",

@@ -1,7 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
+import { colors, commonStyles, modalStyles, radii, sizes, spacing, typography, withButtonState } from "../theme";
 import type { Person, Source, SettingsTab } from "../types";
 import { ModalSheet } from "./ModalSheet";
 
@@ -61,14 +61,14 @@ export function SettingsModal({
 
   return (
     <ModalSheet visible={visible} onClose={closeModal} contentStyle={styles.content}>
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>Settings</Text>
+      <View style={modalStyles.header}>
+        <Text style={modalStyles.title}>Settings</Text>
         <Pressable onPress={closeModal}>
           <MaterialIcons name="close" size={24} color={colors.muted} />
         </Pressable>
       </View>
 
-      <View style={styles.formInModal}>
+      <View style={modalStyles.body}>
         <SettingsTabBar activeTab={settingsTab} onTabChange={setSettingsTab} />
 
         {settingsTab === "people" ? (
@@ -103,21 +103,6 @@ export function SettingsModal({
 
 const styles = StyleSheet.create({
   // Modal shell
-  modalHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: spacing.modal,
-    paddingBottom: 0,
-  },
-  modalTitle: {
-    color: colors.text,
-    fontSize: typography.sizes.title,
-    fontWeight: typography.weights.bold,
-  },
-  formInModal: {
-    padding: spacing.modal,
-  },
   content: {
     maxHeight: "100%",
   },
@@ -274,11 +259,7 @@ function SettingsListSection<T extends SettingsItem>({
         <Pressable
           disabled={isSaving}
           onPress={onAdd}
-          style={({ pressed }) => [
-            styles.addButton,
-            pressed && commonStyles.buttonPressed,
-            isSaving && commonStyles.buttonDisabled,
-          ]}
+          style={withButtonState(styles.addButton, isSaving)}
         >
           <MaterialIcons name="add" size={22} color={colors.surface} />
         </Pressable>

@@ -1,11 +1,10 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
+import { colors, radii, sizes, spacing, typography, withButtonState } from "../theme";
 import type { Person } from "../types";
 
 export function AppHeader({
   isDisabled,
-  isRefreshing,
   onOpenSettings,
   onRefresh,
   onSelectPerson,
@@ -14,7 +13,6 @@ export function AppHeader({
   selectedPerson,
 }: {
   isDisabled: boolean;
-  isRefreshing: boolean;
   onOpenSettings: () => void;
   onRefresh: () => void;
   onSelectPerson: (id: string) => void;
@@ -31,26 +29,18 @@ export function AppHeader({
             accessibilityLabel="Manage sources"
             disabled={isDisabled}
             onPress={onOpenSettings}
-            style={({ pressed }) => [
-              styles.headerIconButton,
-              pressed && !isDisabled && commonStyles.buttonPressed,
-              isDisabled && commonStyles.buttonDisabled,
-            ]}
+            style={withButtonState(styles.headerIconButton, isDisabled)}
           >
             <MaterialIcons name="settings" style={styles.headerIcon} />
           </Pressable>
           <Pressable
             accessibilityLabel="Refresh ledger"
-            disabled={isDisabled || isRefreshing}
+            disabled={isDisabled}
             onPress={onRefresh}
-            style={({ pressed }) => [
-              styles.headerIconButton,
-              pressed && !isDisabled && commonStyles.buttonPressed,
-              (isDisabled || isRefreshing) && commonStyles.buttonDisabled,
-            ]}
+            style={withButtonState(styles.headerIconButton, isDisabled)}
           >
             <MaterialIcons
-              name={isRefreshing ? "hourglass-empty" : "refresh"}
+              name="refresh"
               style={styles.headerIcon}
             />
           </Pressable>

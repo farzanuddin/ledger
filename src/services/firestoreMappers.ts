@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import type { Entry, Person, Source } from "./types";
+import type { Entry, Person, Source } from "../types";
 
 type FirestoreDoc = {
   id: string;
@@ -23,7 +23,6 @@ export const entriesFromDocs = (docs: FirestoreDoc[]): Entry[] =>
           : typeof data.user === "string"
             ? data.user.toLowerCase()
             : "unknown",
-      user: typeof data.user === "string" ? data.user : "Unknown",
       createdAt,
     };
   });

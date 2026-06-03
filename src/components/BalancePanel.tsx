@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
+import { colors, radii, sizes, spacing, typography, withButtonState } from "../theme";
 import { formatDecimalAmount } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
 
@@ -41,11 +41,7 @@ export function BalancePanel({
           accessibilityLabel="Share ledger PDF"
           disabled={isDisabled || isSharing}
           onPress={onSharePdf}
-          style={({ pressed }) => [
-            styles.balanceIconButton,
-            pressed && !isDisabled && commonStyles.buttonPressed,
-            (isDisabled || isSharing) && commonStyles.buttonDisabled,
-          ]}
+          style={withButtonState(styles.balanceIconButton, isDisabled || isSharing)}
         >
           <MaterialIcons
             name={isSharing ? "hourglass-empty" : "ios-share"}
@@ -60,22 +56,14 @@ export function BalancePanel({
         <Pressable
           disabled={isDisabled}
           onPress={onAddEntry}
-          style={({ pressed }) => [
-            styles.addEntryButton,
-            pressed && !isDisabled && commonStyles.buttonPressed,
-            isDisabled && commonStyles.buttonDisabled,
-          ]}
+          style={withButtonState(styles.addEntryButton, isDisabled)}
         >
           <Text style={styles.addEntryButtonText}>Add entry</Text>
         </Pressable>
         <Pressable
           disabled={isDisabled || balanceCents === 0}
           onPress={onSettleBalance}
-          style={({ pressed }) => [
-            styles.settleButton,
-            pressed && !isDisabled && balanceCents !== 0 && commonStyles.buttonPressed,
-            (isDisabled || balanceCents === 0) && commonStyles.buttonDisabled,
-          ]}
+          style={withButtonState(styles.settleButton, isDisabled || balanceCents === 0)}
         >
           <MaterialIcons name="done-all" style={styles.settleIcon} />
           <Text style={styles.settleButtonText}>Settle</Text>

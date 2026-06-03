@@ -14,7 +14,7 @@ import {
   subscribeToSources,
 } from "../services/ledgerService";
 import type { Entry, Person, Source } from "../types";
-import { getErrorMessage } from "../utils/errors";
+import { handleAction } from "../utils/actions";
 import {
   parseAmountCents,
   validatePersonName,
@@ -32,7 +32,6 @@ export function useLedger() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingPerson, setIsSavingPerson] = useState(false);
   const [isSavingSource, setIsSavingSource] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const selectedPerson = useMemo(
     () => people.find((person) => person.id === selectedPersonId),
@@ -73,24 +72,21 @@ export function useLedger() {
         setIsPeopleLoading(false);
       },
       onError: (error) => {
-        Alert.alert("Could not sync people", getErrorMessage(error));
+        Alert.alert("Could not sync people", String(error));
         setIsPeopleLoading(false);
       },
     });
   }, []);
 
   useEffect(() => {
-    if (!people.length) return;
+    if (!people.length) {
+      setSelectedPersonId("");
+      return;
+    }
 
     if (!people.some((item) => item.id === selectedPersonId)) {
       setSelectedPersonId(people[0]?.id || "");
     }
-  }, [people, selectedPersonId]);
-
-  useEffect(() => {
-    if (people.length) return;
-
-    setSelectedPersonId("");
   }, [people, selectedPersonId]);
 
   useEffect(() => {
@@ -104,7 +100,7 @@ export function useLedger() {
         setIsSourcesLoading(false);
       },
       onError: (error) => {
-        Alert.alert("Could not sync sources", getErrorMessage(error));
+        Alert.alert("Could not sync sources", String(error));
         setIsSourcesLoading(false);
       },
     });
@@ -126,7 +122,7 @@ export function useLedger() {
         setIsEntriesLoading(false);
       },
       onError: (error) => {
-        Alert.alert("Could not sync ledger", getErrorMessage(error));
+        Alert.alert("Could not sync ledger", String(error));
         setIsEntriesLoading(false);
       },
       personId: selectedPerson.id,
@@ -156,22 +152,18 @@ export function useLedger() {
         source,
         note: note.trim(),
         personId: selectedPerson.id,
-        user: selectedPerson.name,
         createdAt: new Date(),
       };
 
       setIsSaving(true);
 
-      try {
-        await createEntry(nextEntry);
+      const result = await handleAction(
+        () => createEntry(nextEntry),
+        "Could not save entry",
+      );
 
-        return true;
-      } catch (error) {
-        Alert.alert("Could not save entry", getErrorMessage(error));
-        return false;
-      } finally {
-        setIsSaving(false);
-      }
+      setIsSaving(false);
+      return result !== false;
     },
     [requireFirebase, selectedPerson],
   );
@@ -195,54 +187,39 @@ export function useLedger() {
       source: "Settlement",
       note: "Balance settled",
       personId: selectedPerson.id,
-      user: selectedPerson.name,
       createdAt: new Date(),
     };
 
     setIsSaving(true);
 
-    try {
-      await createEntry(entry);
+    const result = await handleAction(
+      () => createEntry(entry),
+      "Could not settle balance",
+    );
 
-      return true;
-    } catch (error) {
-      Alert.alert("Could not settle balance", getErrorMessage(error));
-      return false;
-    } finally {
-      setIsSaving(false);
-    }
+    setIsSaving(false);
+    return result !== false;
   }, [balanceCents, requireFirebase, selectedPerson]);
 
   const refreshEntries = useCallback(async () => {
     if (!requireFirebase()) return;
+    if (!selectedPerson) return;
 
-    if (!selectedPerson) {
-      setEntries([]);
-      return;
-    }
-
-    setIsRefreshing(true);
     setIsEntriesLoading(true);
 
-    try {
-      setEntries(await fetchEntries(selectedPerson.id));
-    } catch (error) {
-      Alert.alert("Could not refresh ledger", getErrorMessage(error));
-    } finally {
-      setIsRefreshing(false);
-      setIsEntriesLoading(false);
-    }
+    const result = await handleAction(
+      () => fetchEntries(selectedPerson.id),
+      "Could not refresh ledger",
+    );
+
+    if (result !== false) setEntries(result);
+    setIsEntriesLoading(false);
   }, [requireFirebase, selectedPerson]);
 
   const removeEntry = useCallback(
     async (entry: Entry) => {
       if (!requireFirebase()) return;
-
-      try {
-        await deleteEntry(entry);
-      } catch (error) {
-        Alert.alert("Could not delete entry", getErrorMessage(error));
-      }
+      await handleAction(() => deleteEntry(entry), "Could not delete entry");
     },
     [requireFirebase],
   );
@@ -261,17 +238,19 @@ export function useLedger() {
 
       setIsSavingPerson(true);
 
-      try {
-        const nextPersonId = await createPerson(trimmedName);
+      const personId = await handleAction(
+        () => createPerson(trimmedName),
+        "Could not add person",
+      );
 
-        setSelectedPersonId(nextPersonId);
+      setIsSavingPerson(false);
+
+      if (personId) {
+        setSelectedPersonId(personId);
         return true;
-      } catch (error) {
-        Alert.alert("Could not add person", getErrorMessage(error));
-        return false;
-      } finally {
-        setIsSavingPerson(false);
       }
+
+      return false;
     },
     [people, requireFirebase],
   );
@@ -285,15 +264,14 @@ export function useLedger() {
         return;
       }
 
-      try {
-        await deletePerson(personToRemove);
+      const success = await handleAction(
+        () => deletePerson(personToRemove),
+        "Could not remove person",
+      );
 
-        if (selectedPersonId === personToRemove.id) {
-          const nextPerson = people.find((item) => item.id !== personToRemove.id);
-          if (nextPerson) setSelectedPersonId(nextPerson.id);
-        }
-      } catch (error) {
-        Alert.alert("Could not remove person", getErrorMessage(error));
+      if (success !== false && selectedPersonId === personToRemove.id) {
+        const nextPerson = people.find((item) => item.id !== personToRemove.id);
+        if (nextPerson) setSelectedPersonId(nextPerson.id);
       }
     },
     [people, requireFirebase, selectedPersonId],
@@ -313,16 +291,13 @@ export function useLedger() {
 
       setIsSavingSource(true);
 
-      try {
-        await createSource(trimmedName);
+      const result = await handleAction(
+        () => createSource(trimmedName),
+        "Could not add source",
+      );
 
-        return true;
-      } catch (error) {
-        Alert.alert("Could not add source", getErrorMessage(error));
-        return false;
-      } finally {
-        setIsSavingSource(false);
-      }
+      setIsSavingSource(false);
+      return result !== false;
     },
     [requireFirebase, sources],
   );
@@ -336,11 +311,10 @@ export function useLedger() {
         return;
       }
 
-      try {
-        await deleteSource(sourceToRemove);
-      } catch (error) {
-        Alert.alert("Could not remove source", getErrorMessage(error));
-      }
+      await handleAction(
+        () => deleteSource(sourceToRemove),
+        "Could not remove source",
+      );
     },
     [requireFirebase, sources],
   );
@@ -363,7 +337,6 @@ export function useLedger() {
       loading: {
         entries: isEntriesLoading,
         people: isPeopleLoading,
-        refreshing: isRefreshing,
         savingEntry: isSaving,
         savingPerson: isSavingPerson,
         savingSource: isSavingSource,
@@ -381,7 +354,6 @@ export function useLedger() {
       addSource,
       balanceCents,
       sources,
-      isRefreshing,
       isEntriesLoading,
       isPeopleLoading,
       isSourcesLoading,

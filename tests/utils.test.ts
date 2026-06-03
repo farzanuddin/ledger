@@ -6,15 +6,14 @@ import {
   formatEntryDate,
   formatPeopleCountLabel,
 } from "../src/utils/format";
-import { ledgerId } from "../src/constants";
 import {
   entriesFromDocs,
   peopleFromDocs,
   sourcesFromDocs,
-} from "../src/firestoreMappers";
+} from "../src/services/firestoreMappers";
 import type { Entry } from "../src/types";
 import { getErrorMessage } from "../src/utils/errors";
-import { getPreferredSourceName, sourceIdFromName } from "../src/utils/ledger";
+import { ledgerId, sourceIdFromName } from "../src/utils/ledger";
 import { buildLedgerReportHtml, escapeHtml } from "../src/utils/report";
 import {
   parseAmountCents,
@@ -39,17 +38,6 @@ test("formats people count labels", () => {
 test("creates stable ids from source names", () => {
   expect(sourceIdFromName("Amazon UAE")).toBe("amazon-uae");
   expect(sourceIdFromName("  ")).toBe("");
-});
-
-test("prefers Default as the selected source", () => {
-  expect(
-    getPreferredSourceName([
-      { id: "aliexpress", name: "Aliexpress" },
-      { id: "default", name: "Default" },
-    ]),
-  ).toBe("Default");
-  expect(getPreferredSourceName([{ id: "noon", name: "Noon" }])).toBe("Noon");
-  expect(getPreferredSourceName([])).toBe("");
 });
 
 test("validates entry input", () => {
@@ -114,7 +102,6 @@ test("builds report html with escaped content", () => {
       note: "<Lunch>",
       personId: "dad",
       source: "Default",
-      user: "Dad",
     },
   ];
 

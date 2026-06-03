@@ -11,9 +11,9 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 
-import { ledgerId } from "../constants";
+import { ledgerId } from "../utils/ledger";
 import { db } from "../firebase";
-import { entriesFromDocs, peopleFromDocs, sourcesFromDocs } from "../firestoreMappers";
+import { entriesFromDocs, peopleFromDocs, sourcesFromDocs } from "./firestoreMappers";
 import type { Entry, Person, Source } from "../types";
 
 export const subscribeToPeople = ({
@@ -83,7 +83,6 @@ export const createEntry = async (entry: Entry) => {
     source: entry.source,
     note: entry.note,
     personId: entry.personId,
-    user: entry.user,
     createdAt: serverTimestamp(),
   });
 };
