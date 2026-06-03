@@ -1,7 +1,16 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { Animated, Modal, Pressable, StyleSheet, View, type ViewStyle } from "react-native";
-import { colors, radii } from "../theme";
+import {
+  Animated,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from "react-native";
+import { colors, radii, spacing } from "../theme";
 
 export function ModalSheet({
   children,
@@ -58,7 +67,11 @@ export function ModalSheet({
         >
           <Pressable onPress={onClose} style={StyleSheet.absoluteFill} />
           <Pressable onPress={() => {}} style={styles.centerWrapper}>
-            <View style={[styles.contentCenter, contentStyle]}>{children}</View>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+            >
+              <View style={[styles.contentCenter, contentStyle]}>{children}</View>
+            </KeyboardAvoidingView>
           </Pressable>
         </Animated.View>
       </Modal>
@@ -87,7 +100,11 @@ export function ModalSheet({
             }}
           >
             <Pressable onPress={() => {}}>
-              <View style={[styles.content, contentStyle]}>{children}</View>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+              >
+                <View style={[styles.content, contentStyle]}>{children}</View>
+              </KeyboardAvoidingView>
             </Pressable>
           </Animated.View>
         </Pressable>
@@ -107,7 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlay,
     alignItems: "center",
     justifyContent: "center",
-    padding: radii.dialog,
+    padding: spacing.screen,
   },
   centerWrapper: {
     width: "100%",

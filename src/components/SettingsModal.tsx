@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: sizes.tabMinHeight,
+    minHeight: sizes.control,
   },
   tabActive: {
     backgroundColor: colors.primary,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     flex: 1,
     fontSize: typography.sizes.base,
-    minHeight: sizes.controlMinHeight,
+    minHeight: sizes.control,
     paddingHorizontal: spacing.section,
   },
   addButton: {
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: radii.control,
     justifyContent: "center",
-    width: sizes.controlMinHeight,
+    width: sizes.control,
   },
   // List
   settingsList: {
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
-    minHeight: sizes.modalActionMinHeight,
+    minHeight: sizes.controlLarge,
     paddingLeft: spacing.section,
   },
   rowText: {
@@ -185,9 +185,9 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     alignItems: "center",
-    height: sizes.iconButton,
+    height: sizes.control,
     justifyContent: "center",
-    width: sizes.iconButton,
+    width: sizes.control,
   },
   emptyText: {
     color: colors.textMuted,

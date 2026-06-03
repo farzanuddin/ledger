@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.control,
     justifyContent: "center",
     marginTop: spacing.section,
-    minHeight: sizes.largeControlMinHeight,
+    minHeight: sizes.controlLarge,
   },
   addButtonText: {
     color: colors.surface,
@@ -142,9 +142,9 @@ const styles = StyleSheet.create({
   sourcePill: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: radii.pill,
+    borderRadius: 100,
     borderWidth: 1,
-    paddingHorizontal: spacing.panel,
+    paddingHorizontal: spacing.section,
     paddingVertical: spacing.xl,
   },
   sourcePillActive: {
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   sourcePillText: {
     color: colors.text,
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
   sourcePillTextActive: {
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     flex: 1,
     fontSize: typography.sizes.input,
-    minHeight: sizes.largeControlMinHeight,
+    minHeight: sizes.controlLarge,
     minWidth: 0,
     paddingHorizontal: spacing.section,
   },
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flex: 0.55,
     flexDirection: "row",
-    minHeight: sizes.largeControlMinHeight,
+    minHeight: sizes.controlLarge,
     minWidth: 0,
     paddingLeft: spacing.md,
   },
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     flex: 1,
     fontSize: typography.sizes.input,
-    minHeight: sizes.largeControlMinHeight,
+    minHeight: sizes.controlLarge,
     minWidth: 0,
     paddingHorizontal: spacing.md,
   },

@@ -63,12 +63,12 @@ const styles = StyleSheet.create({
   },
   confirmMeta: {
     color: colors.textMuted,
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.sm,
   },
   confirmButtons: {
     flexDirection: "row",
     gap: spacing.xl,
-    marginTop: spacing.modal,
+    marginTop: spacing.screen,
   },
   cancelButton: {
     alignItems: "center",
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: sizes.modalActionMinHeight,
+    minHeight: sizes.controlLarge,
   },
   cancelButtonText: {
     color: colors.muted,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.control,
     flex: 1,
     justifyContent: "center",
-    minHeight: sizes.modalActionMinHeight,
+    minHeight: sizes.controlLarge,
   },
   confirmButtonPrimary: {
     backgroundColor: colors.primary,

@@ -17,17 +17,12 @@ export const radii = {
   control: 8,
   dialog: 12,
   sheet: 16,
-  pill: 100,
 } as const;
 
 export const sizes = {
-  compactIconButton: 34,
-  balanceIconButton: 36,
-  tabMinHeight: 42,
-  controlMinHeight: 44,
-  largeControlMinHeight: 50,
-  iconButton: 44,
-  modalActionMinHeight: 48,
+  iconSmall: 34,
+  control: 44,
+  controlLarge: 50,
 } as const;
 
 export const spacing = {
@@ -36,18 +31,13 @@ export const spacing = {
   lg: 8,
   xl: 10,
   section: 14,
-  panel: 16,
-  card: 18,
-  modal: 20,
   screen: 20,
 } as const;
 
 export const typography = {
   sizes: {
     xxs: 11,
-    xs: 12,
     sm: 13,
-    md: 14,
     base: 15,
     input: 16,
     title: 18,
@@ -57,7 +47,6 @@ export const typography = {
   weights: {
     semibold: "700",
     bold: "800",
-    heavy: "900",
   },
 } as const;
 
@@ -78,7 +67,7 @@ export const modalStyles = {
     alignItems: "center" as const,
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
-    padding: spacing.modal,
+    padding: spacing.screen,
     paddingBottom: 0,
   },
   title: {
@@ -87,7 +76,7 @@ export const modalStyles = {
     fontWeight: typography.weights.bold,
   },
   body: {
-    padding: spacing.modal,
+    padding: spacing.screen,
   },
 };
 

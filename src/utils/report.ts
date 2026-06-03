@@ -10,8 +10,20 @@ export const escapeHtml = (value: string) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+export const entriesSinceLastSettlement = (entries: Entry[]) => {
+  const settlements = entries.filter((e) => e.note === "Balance settled");
+  if (!settlements.length) return entries;
+
+  const lastSettledAt = settlements.reduce(
+    (latest, s) => (s.createdAt > latest ? s.createdAt : latest),
+    new Date(0),
+  );
+
+  return entries.filter((e) => e.createdAt > lastSettledAt);
+};
+
 export const buildLedgerReportHtml = ({
-  balanceCents,
+  balanceCents: _balanceCents,
   entries,
   user,
 }: {
@@ -19,8 +31,13 @@ export const buildLedgerReportHtml = ({
   entries: Entry[];
   user: string;
 }) => {
+  const recentEntries = entriesSinceLastSettlement(entries);
+  const balanceCents = recentEntries.reduce(
+    (total, e) => total + e.amountCents,
+    0,
+  );
   const generatedAt = new Date();
-  const rows = entries
+  const rows = recentEntries
     .map(
       (entry) => `
         <tr>
@@ -114,7 +131,7 @@ export const buildLedgerReportHtml = ({
           <div class="summary-total">${formatAmount(balanceCents)}</div>
         </section>
         ${
-          entries.length
+          recentEntries.length
             ? `<table>
                 <thead>
                   <tr><th>Entry</th><th>Amount</th></tr>

@@ -1,7 +1,6 @@
 import { memo, useCallback } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { colors, radii, sizes, spacing, typography, withButtonState } from "../theme";
+import { colors, radii, spacing, typography, withButtonState } from "../theme";
 import type { Entry } from "../types";
 import { formatDecimalAmount, formatEntryDate } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
@@ -90,7 +89,7 @@ const EntryRow = memo(function EntryRow({
           onPress={() => onRequestDelete(entry)}
           style={withButtonState(styles.deleteButton, false)}
         >
-          <MaterialIcons name="delete-outline" style={styles.deleteIcon} />
+          <Text style={styles.deleteLabel}>Delete</Text>
         </Pressable>
       </View>
     </View>
@@ -102,7 +101,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    padding: spacing.modal,
+    padding: spacing.screen,
     paddingBottom: 32,
   },
   emptyState: {
@@ -116,7 +115,7 @@ const styles = StyleSheet.create({
   },
   emptyBody: {
     color: colors.textMuted,
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.sm,
     marginTop: spacing.md,
     textAlign: "center",
   },
@@ -157,7 +156,7 @@ const styles = StyleSheet.create({
   },
   entryAmount: {
     fontSize: typography.sizes.input,
-    fontWeight: typography.weights.heavy,
+    fontWeight: typography.weights.bold,
   },
   positiveAmount: {
     color: colors.primary,
@@ -166,19 +165,15 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
   deleteButton: {
-    alignItems: "center",
-    backgroundColor: colors.background,
-    borderColor: colors.border,
+    backgroundColor: "transparent",
     borderRadius: radii.control,
-    borderWidth: 1,
-    height: sizes.compactIconButton,
-    justifyContent: "center",
-    marginTop: spacing.lg,
-    width: sizes.compactIconButton,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
   },
-  deleteIcon: {
-    color: colors.danger,
-    fontSize: typography.sizes.icon,
-    lineHeight: 21,
+  deleteLabel: {
+    color: colors.textMuted,
+    fontSize: typography.sizes.xxs,
+    fontWeight: typography.weights.semibold,
   },
 });

@@ -70,7 +70,7 @@ export function AppHeader({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.screen,
-    paddingTop: spacing.card,
+    paddingTop: spacing.screen,
     paddingBottom: 0,
   },
   headerTopRow: {
@@ -89,9 +89,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radii.control,
     borderWidth: 1,
-    height: sizes.compactIconButton,
+    height: sizes.iconSmall,
     justifyContent: "center",
-    width: sizes.compactIconButton,
+    width: sizes.iconSmall,
   },
   headerIcon: {
     color: colors.muted,
