@@ -89,9 +89,9 @@ test("maps Firestore docs defensively", () => {
     },
   ]);
 
-  expect(entries[0].id).toBe("entry-1");
-  expect(entries[0].personId).toBe("dad");
-  expect(entries[0].amountCents).toBe(500);
+  expect(entries[0]?.id).toBe("entry-1");
+  expect(entries[0]?.personId).toBe("dad");
+  expect(entries[0]?.amountCents).toBe(500);
 
   expect(
     peopleFromDocs([

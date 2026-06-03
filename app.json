@@ -33,9 +33,6 @@
         "projectId": "d9f08f8b-750c-4a34-ba52-67b95cbb01ae"
       }
     },
-    "owner": "farzanuddin",
-    "plugins": [
-      "expo-font"
-    ]
+    "owner": "farzanuddin"
   }
 }

@@ -83,7 +83,7 @@ export function useLedger() {
     if (!people.length) return;
 
     if (!people.some((item) => item.id === selectedPersonId)) {
-      setSelectedPersonId(people[0].id);
+      setSelectedPersonId(people[0]?.id || "");
     }
   }, [people, selectedPersonId]);
 
