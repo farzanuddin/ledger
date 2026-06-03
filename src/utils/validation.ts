@@ -22,11 +22,29 @@ export const validateEntryInput = ({
   note: string;
   source: string;
 }): ValidationResult => {
-  if (parseAmountCents(amount) === null) {
+  const parsedAmount = Number.parseFloat(amount);
+
+  if (!amount.trim()) {
     return {
       ok: false,
       title: "Enter an amount",
-      message: "Use a number like 24.50, or -24.50 when you owe money.",
+      message: "Amount cannot be empty.",
+    };
+  }
+
+  if (!Number.isFinite(parsedAmount)) {
+    return {
+      ok: false,
+      title: "Enter an amount",
+      message: "Amount is not valid.",
+    };
+  }
+
+  if (Math.round(parsedAmount * 100) === 0) {
+    return {
+      ok: false,
+      title: "Amount cannot be zero",
+      message: "Amount cannot be 0.",
     };
   }
 
@@ -34,7 +52,7 @@ export const validateEntryInput = ({
     return {
       ok: false,
       title: "Enter a note",
-      message: "Add a short note for this ledger entry.",
+      message: "Note cannot be blank.",
     };
   }
 

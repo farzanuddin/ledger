@@ -20,6 +20,7 @@ import { useLedgerSharing } from "./src/hooks/useLedgerSharing";
 import { colors, spacing } from "./src/theme";
 import type { LedgerEntry, Person, PurchaseSource, SettingsTab } from "./src/types";
 import { formatDecimalAmount, formatPeopleCountLabel } from "./src/utils/format";
+import { getPreferredSourceName } from "./src/utils/sources";
 
 export default function App() {
   const ledger = useLedgerData();
@@ -69,7 +70,7 @@ export default function App() {
   useEffect(() => {
     if (!purchaseSources.length) return;
     if (!purchaseSources.some((item) => item.name === source)) {
-      setSource(purchaseSources[0].name);
+      setSource(getPreferredSourceName(purchaseSources));
     }
   }, [purchaseSources, source]);
 

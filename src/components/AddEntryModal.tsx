@@ -1,4 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
 import type { PurchaseSource } from "../types";
@@ -36,26 +37,34 @@ export function AddEntryModal({
   sources: PurchaseSource[];
   visible: boolean;
 }) {
-  const isFormValid =
-    amount.trim().length > 0 && note.trim().length > 0 && source.trim().length > 0;
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const clearError = () => setErrorMessage("");
+
+  const closeModal = () => {
+    clearError();
+    onClose();
+  };
 
   const submit = async () => {
     const validation = validateEntryInput({ amount, note, source });
 
     if (!validation.ok) {
+      setErrorMessage(validation.message);
       Alert.alert(validation.title, validation.message);
       return;
     }
 
+    clearError();
     await onAddEntry();
-    onClose();
+    closeModal();
   };
 
   return (
-    <ModalSheet visible={visible} onClose={onClose}>
+    <ModalSheet visible={visible} onClose={closeModal}>
       <View style={styles.modalHeader}>
         <Text style={styles.modalTitle}>New entry</Text>
-        <Pressable onPress={onClose}>
+        <Pressable onPress={closeModal}>
           <MaterialIcons name="close" size={24} color={colors.muted} />
         </Pressable>
       </View>
@@ -63,7 +72,10 @@ export function AddEntryModal({
       <View style={styles.formInModal}>
         <SourcePicker
           isOpen={sourcePickerOpen}
-          onSelectSource={onSelectSource}
+          onSelectSource={(nextSource) => {
+            clearError();
+            onSelectSource(nextSource);
+          }}
           onToggle={onToggleSourcePicker}
           selectedSource={source}
           sources={sources}
@@ -72,17 +84,25 @@ export function AddEntryModal({
         <EntryFields
           amount={amount}
           note={note}
-          onAmountChange={onAmountChange}
-          onNoteChange={onNoteChange}
+          onAmountChange={(value) => {
+            clearError();
+            onAmountChange(value);
+          }}
+          onNoteChange={(value) => {
+            clearError();
+            onNoteChange(value);
+          }}
         />
 
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
         <Pressable
-          disabled={isSaving || !isFormValid}
+          disabled={isSaving}
           onPress={submit}
           style={({ pressed }) => [
             styles.addButton,
-            pressed && isFormValid && commonStyles.buttonPressed,
-            (isSaving || !isFormValid) && commonStyles.buttonDisabled,
+            pressed && !isSaving && commonStyles.buttonPressed,
+            isSaving && commonStyles.buttonDisabled,
           ]}
         >
           <Text style={styles.addButtonText}>
@@ -122,5 +142,11 @@ const styles = StyleSheet.create({
     color: colors.surface,
     fontSize: typography.sizes.input,
     fontWeight: typography.weights.bold,
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    marginTop: spacing.lg,
   },
 });

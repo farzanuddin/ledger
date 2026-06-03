@@ -16,6 +16,7 @@ import type { LedgerEntry } from "../src/types";
 import { getErrorMessage } from "../src/utils/errors";
 import { sourceIdFromName } from "../src/utils/ids";
 import { buildLedgerReportHtml, escapeHtml } from "../src/utils/report";
+import { getPreferredSourceName } from "../src/utils/sources";
 import {
   parseAmountCents,
   sanitizeAmountInput,
@@ -41,12 +42,25 @@ test("creates stable ids from source names", () => {
   expect(sourceIdFromName("  ")).toBe("");
 });
 
+test("prefers Default as the selected purchase source", () => {
+  expect(
+    getPreferredSourceName([
+      { id: "aliexpress", name: "Aliexpress" },
+      { id: "default", name: "Default" },
+    ]),
+  ).toBe("Default");
+  expect(getPreferredSourceName([{ id: "noon", name: "Noon" }])).toBe("Noon");
+  expect(getPreferredSourceName([])).toBe("");
+});
+
 test("validates entry input", () => {
   expect(sanitizeAmountInput("AED -12.30x")).toBe("-12.30");
   expect(parseAmountCents("-12.30")).toBe(-1230);
-  expect(validateEntryInput({ amount: "0", note: "Lunch", source: "Default" }).ok).toBe(
-    false,
-  );
+  expect(validateEntryInput({ amount: "0", note: "Lunch", source: "Default" })).toEqual({
+    ok: false,
+    title: "Amount cannot be zero",
+    message: "Amount cannot be 0.",
+  });
   expect(
     validateEntryInput({ amount: "12", note: "Lunch", source: "Default" }).ok,
   ).toBe(true);
@@ -150,15 +164,23 @@ test("handles edge cases for people count labels", () => {
 });
 
 test("handles edge cases for validation", () => {
-  expect(validateEntryInput({ amount: "", note: "Lunch", source: "Default" }).ok).toBe(
-    false,
-  );
+  expect(validateEntryInput({ amount: "", note: "Lunch", source: "Default" })).toEqual({
+    ok: false,
+    title: "Enter an amount",
+    message: "Amount cannot be empty.",
+  });
+  expect(validateEntryInput({ amount: "abc", note: "Lunch", source: "Default" })).toEqual({
+    ok: false,
+    title: "Enter an amount",
+    message: "Amount is not valid.",
+  });
   expect(
-    validateEntryInput({ amount: "abc", note: "Lunch", source: "Default" }).ok,
-  ).toBe(false);
-  expect(
-    validateEntryInput({ amount: "12.50", note: "", source: "Default" }).ok,
-  ).toBe(false);
+    validateEntryInput({ amount: "12.50", note: "", source: "Default" }),
+  ).toEqual({
+    ok: false,
+    title: "Enter a note",
+    message: "Note cannot be blank.",
+  });
   expect(
     validateEntryInput({ amount: "12.50", note: "Lunch", source: "" }).ok,
   ).toBe(false);
