@@ -3,13 +3,14 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radii, sizes, spacing, typography } from "../theme";
 import { ModalSheet } from "./ModalSheet";
 
-export function ConfirmDeleteModal({
+export function ConfirmModal({
   body,
   confirmLabel = "Delete",
   meta,
   onCancel,
   onConfirm,
   title,
+  variant = "danger",
   visible,
 }: {
   body: string;
@@ -18,6 +19,7 @@ export function ConfirmDeleteModal({
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
   title: string;
+  variant?: "danger" | "primary";
   visible: boolean;
 }) {
   return (
@@ -37,7 +39,13 @@ export function ConfirmDeleteModal({
           <Pressable onPress={onCancel} style={styles.cancelButton}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </Pressable>
-          <Pressable onPress={onConfirm} style={styles.confirmButton}>
+          <Pressable
+            onPress={onConfirm}
+            style={[
+              styles.confirmButton,
+              variant === "primary" && styles.confirmButtonPrimary,
+            ]}
+          >
             <Text style={styles.confirmButtonText}>{confirmLabel}</Text>
           </Pressable>
         </View>
@@ -99,6 +107,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     minHeight: sizes.modalActionMinHeight,
+  },
+  confirmButtonPrimary: {
+    backgroundColor: colors.primary,
   },
   confirmButtonText: {
     color: colors.surface,

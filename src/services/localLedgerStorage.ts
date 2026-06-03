@@ -1,27 +1,28 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
-import type { LedgerEntry, Person, PurchaseSource } from "../types";
+import type { Entry, Person, Source } from "../types";
 
 const storageKey = "ledger.local.v1";
 
 type StoredLedgerData = {
-  entries: Array<Omit<LedgerEntry, "createdAt"> & { createdAt: string }>;
+  entries: Array<Omit<Entry, "createdAt"> & { createdAt: string }>;
   people: Person[];
-  purchaseSources: PurchaseSource[];
+  purchaseSources?: Source[];
+  sources?: Source[];
   selectedPersonId: string;
 };
 
 export type LocalLedgerData = {
-  entries: LedgerEntry[];
+  entries: Entry[];
   people: Person[];
-  purchaseSources: PurchaseSource[];
+  sources: Source[];
   selectedPersonId: string;
 };
 
 const emptyLedgerData: LocalLedgerData = {
   entries: [],
   people: [],
-  purchaseSources: [],
+  sources: [],
   selectedPersonId: "",
 };
 
@@ -44,9 +45,7 @@ const writeStoredValue = async (value: string) => {
   await AsyncStorage.setItem(storageKey, value);
 };
 
-const parseStoredEntry = (
-  entry: StoredLedgerData["entries"][number],
-): LedgerEntry => ({
+const parseStoredEntry = (entry: StoredLedgerData["entries"][number]): Entry => ({
   ...entry,
   createdAt: new Date(entry.createdAt),
 });
@@ -57,7 +56,7 @@ const serializeLedgerData = (data: LocalLedgerData): StoredLedgerData => ({
     createdAt: entry.createdAt.toISOString(),
   })),
   people: data.people,
-  purchaseSources: data.purchaseSources,
+  purchaseSources: data.sources,
   selectedPersonId: data.selectedPersonId,
 });
 
@@ -73,9 +72,11 @@ export const loadLocalLedgerData = async (): Promise<LocalLedgerData> => {
         ? parsedValue.entries.map(parseStoredEntry)
         : [],
       people: Array.isArray(parsedValue.people) ? parsedValue.people : [],
-      purchaseSources: Array.isArray(parsedValue.purchaseSources)
+      sources: Array.isArray(parsedValue.purchaseSources)
         ? parsedValue.purchaseSources
-        : [],
+        : Array.isArray(parsedValue.sources)
+          ? parsedValue.sources
+          : [],
       selectedPersonId:
         typeof parsedValue.selectedPersonId === "string"
           ? parsedValue.selectedPersonId

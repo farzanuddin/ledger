@@ -1,4 +1,4 @@
-import type { Person, PurchaseSource } from "../types";
+import type { Person, Source } from "../types";
 
 export type ValidationResult =
   | { ok: true }
@@ -94,7 +94,7 @@ export const validatePersonName = (
 
 export const validateSourceName = (
   name: string,
-  sources: PurchaseSource[],
+  sources: Source[],
 ): ValidationResult => {
   const trimmedName = name.trim();
 

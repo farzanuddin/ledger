@@ -1,5 +1,5 @@
 import { colors } from "../theme";
-import type { LedgerEntry } from "../types";
+import type { Entry } from "../types";
 import { formatAmount, formatEntryDate } from "./format";
 
 export const escapeHtml = (value: string) =>
@@ -16,7 +16,7 @@ export const buildLedgerReportHtml = ({
   user,
 }: {
   balanceCents: number;
-  entries: LedgerEntry[];
+  entries: Entry[];
   user: string;
 }) => {
   const generatedAt = new Date();

@@ -1,7 +1,7 @@
 import { memo, useCallback } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radii, spacing, typography } from "../theme";
-import type { LedgerEntry } from "../types";
+import type { Entry } from "../types";
 import { formatDecimalAmount, formatEntryDate } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
 
@@ -10,12 +10,12 @@ export function EntryList({
   isLoading,
   onRequestDelete,
 }: {
-  entries: LedgerEntry[];
+  entries: Entry[];
   isLoading: boolean;
-  onRequestDelete: (entry: LedgerEntry) => void;
+  onRequestDelete: (entry: Entry) => void;
 }) {
   const renderItem = useCallback(
-    ({ item }: { item: LedgerEntry }) => (
+    ({ item }: { item: Entry }) => (
       <EntryRow entry={item} onRequestDelete={onRequestDelete} />
     ),
     [onRequestDelete],
@@ -48,8 +48,8 @@ const EntryRow = memo(function EntryRow({
   entry,
   onRequestDelete,
 }: {
-  entry: LedgerEntry;
-  onRequestDelete: (entry: LedgerEntry) => void;
+  entry: Entry;
+  onRequestDelete: (entry: Entry) => void;
 }) {
   return (
     <View style={styles.entryRow}>

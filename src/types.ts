@@ -5,12 +5,12 @@ export type Person = {
 
 export type SettingsTab = "people" | "sources";
 
-export type PurchaseSource = {
+export type Source = {
   id: string;
   name: string;
 };
 
-export type LedgerEntry = {
+export type Entry = {
   id: string;
   amountCents: number;
   source: string;

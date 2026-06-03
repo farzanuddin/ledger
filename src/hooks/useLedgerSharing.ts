@@ -3,12 +3,12 @@ import { Alert, Platform } from "react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
-import type { LedgerEntry } from "../types";
+import type { Entry } from "../types";
 import { buildLedgerReportHtml } from "../utils/report";
 
 type ShareLedgerPdfParams = {
   balanceCents: number;
-  entries: LedgerEntry[];
+  entries: Entry[];
   user: string;
 };
 

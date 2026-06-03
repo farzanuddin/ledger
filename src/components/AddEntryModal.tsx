@@ -1,63 +1,50 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
-import type { PurchaseSource } from "../types";
-import { validateEntryInput } from "../utils/validation";
-import { EntryFields } from "./EntryFields";
+import type { Source } from "../types";
+import { getPreferredSourceName } from "../utils/ledger";
+import { sanitizeAmountInput, validateEntryInput } from "../utils/validation";
 import { ModalSheet } from "./ModalSheet";
-import { SourcePicker } from "./SourcePicker";
 
 export function AddEntryModal({
-  amount,
   isSaving,
-  note,
   onAddEntry,
-  onAmountChange,
   onClose,
-  onNoteChange,
-  onSelectSource,
-  onToggleSourcePicker,
-  source,
-  sourcePickerOpen,
   sources,
   visible,
 }: {
-  amount: string;
   isSaving: boolean;
-  note: string;
-  onAddEntry: () => Promise<void>;
-  onAmountChange: (value: string) => void;
+  onAddEntry: (entry: {
+    amount: string;
+    note: string;
+    source: string;
+  }) => Promise<boolean | void>;
   onClose: () => void;
-  onNoteChange: (value: string) => void;
-  onSelectSource: (source: string) => void;
-  onToggleSourcePicker: () => void;
-  source: string;
-  sourcePickerOpen: boolean;
-  sources: PurchaseSource[];
+  sources: Source[];
   visible: boolean;
 }) {
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const clearError = () => setErrorMessage("");
+  const form = useAddEntryForm(sources);
 
   const closeModal = () => {
-    clearError();
+    form.reset();
     onClose();
   };
 
   const submit = async () => {
-    const validation = validateEntryInput({ amount, note, source });
+    const validation = validateEntryInput(form.entry);
 
     if (!validation.ok) {
-      setErrorMessage(validation.message);
+      form.setError(validation.message);
       Alert.alert(validation.title, validation.message);
       return;
     }
 
-    clearError();
-    await onAddEntry();
-    closeModal();
+    form.clearError();
+    const wasAdded = await onAddEntry(form.entry);
+    if (wasAdded === false) return;
+    form.reset();
+    onClose();
   };
 
   return (
@@ -71,30 +58,23 @@ export function AddEntryModal({
 
       <View style={styles.formInModal}>
         <SourcePicker
-          isOpen={sourcePickerOpen}
-          onSelectSource={(nextSource) => {
-            clearError();
-            onSelectSource(nextSource);
-          }}
-          onToggle={onToggleSourcePicker}
-          selectedSource={source}
+          isOpen={form.sourcePickerOpen}
+          onSelectSource={form.selectSource}
+          onToggle={form.toggleSourcePicker}
+          selectedSource={form.entry.source}
           sources={sources}
         />
 
         <EntryFields
-          amount={amount}
-          note={note}
-          onAmountChange={(value) => {
-            clearError();
-            onAmountChange(value);
-          }}
-          onNoteChange={(value) => {
-            clearError();
-            onNoteChange(value);
-          }}
+          amount={form.entry.amount}
+          note={form.entry.note}
+          onAmountChange={form.changeAmount}
+          onNoteChange={form.changeNote}
         />
 
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {form.errorMessage ? (
+          <Text style={styles.errorText}>{form.errorMessage}</Text>
+        ) : null}
 
         <Pressable
           disabled={isSaving}
@@ -149,4 +129,297 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     marginTop: spacing.lg,
   },
+  sourceHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  sourceLabel: {
+    color: colors.muted,
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.semibold,
+  },
+  sourceValue: {
+    color: colors.text,
+    fontWeight: typography.weights.bold,
+  },
+  sourcePanel: {
+    marginTop: spacing.xl,
+  },
+  sourcePillRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  sourcePill: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    paddingHorizontal: spacing.panel,
+    paddingVertical: spacing.xl,
+  },
+  sourcePillActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  sourcePillText: {
+    color: colors.text,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+  },
+  sourcePillTextActive: {
+    color: colors.surface,
+  },
+  noSourcesText: {
+    color: colors.textMuted,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.lg,
+  },
+  inputRow: {
+    flexDirection: "row",
+    gap: spacing.xl,
+    marginTop: spacing.section,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
+    borderWidth: 1,
+    color: colors.text,
+    flex: 1,
+    fontSize: typography.sizes.input,
+    minHeight: sizes.largeControlMinHeight,
+    minWidth: 0,
+    paddingHorizontal: spacing.section,
+  },
+  amountInput: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.control,
+    borderWidth: 1,
+    flex: 0.55,
+    flexDirection: "row",
+    minHeight: sizes.largeControlMinHeight,
+    minWidth: 0,
+    paddingLeft: spacing.md,
+  },
+  amountSign: {
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderRadius: radii.control,
+    height: 30,
+    justifyContent: "center",
+    width: 30,
+  },
+  amountSignNegative: {
+    backgroundColor: colors.danger,
+  },
+  amountSignText: {
+    color: colors.primary,
+    fontSize: typography.sizes.input,
+    fontWeight: typography.weights.bold,
+    lineHeight: 18,
+  },
+  amountSignTextNegative: {
+    color: colors.surface,
+  },
+  amountTextInput: {
+    color: colors.text,
+    flex: 1,
+    fontSize: typography.sizes.input,
+    minHeight: sizes.largeControlMinHeight,
+    minWidth: 0,
+    paddingHorizontal: spacing.md,
+  },
 });
+
+function useAddEntryForm(sources: Source[]) {
+  const [amount, setAmount] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [note, setNote] = useState("");
+  const [source, setSource] = useState("");
+  const [sourcePickerOpen, setSourcePickerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!sources.length) {
+      setSource("");
+      return;
+    }
+
+    if (!sources.some((item) => item.name === source)) {
+      setSource(getPreferredSourceName(sources));
+    }
+  }, [source, sources]);
+
+  const clearError = () => setErrorMessage("");
+
+  const reset = () => {
+    setAmount("");
+    setErrorMessage("");
+    setNote("");
+    setSourcePickerOpen(false);
+  };
+
+  const changeAmount = (value: string) => {
+    clearError();
+    setAmount(value);
+  };
+
+  const changeNote = (value: string) => {
+    clearError();
+    setNote(value);
+  };
+
+  const selectSource = (nextSource: string) => {
+    clearError();
+    setSource(nextSource);
+    setSourcePickerOpen(false);
+  };
+
+  return {
+    changeAmount,
+    changeNote,
+    clearError,
+    entry: { amount, note, source },
+    errorMessage,
+    reset,
+    selectSource,
+    setError: setErrorMessage,
+    sourcePickerOpen,
+    toggleSourcePicker: () => setSourcePickerOpen((isOpen) => !isOpen),
+  };
+}
+
+function SourcePicker({
+  isOpen,
+  onSelectSource,
+  onToggle,
+  selectedSource,
+  sources,
+}: {
+  isOpen: boolean;
+  onSelectSource: (source: string) => void;
+  onToggle: () => void;
+  selectedSource: string;
+  sources: Source[];
+}) {
+  return (
+    <View>
+      <Pressable onPress={onToggle} style={styles.sourceHeader}>
+        <Text style={styles.sourceLabel}>
+          Source:{" "}
+          <Text style={styles.sourceValue}>
+            {selectedSource || "No source selected"}
+          </Text>
+        </Text>
+        <MaterialIcons
+          name={isOpen ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+          size={22}
+          color={colors.muted}
+        />
+      </Pressable>
+      {isOpen && (
+        <View style={styles.sourcePanel}>
+          <View style={styles.sourcePillRow}>
+            {sources.map((source) => {
+              const isSelected = selectedSource === source.name;
+
+              return (
+                <Pressable
+                  key={source.id}
+                  onPress={() => onSelectSource(source.name)}
+                  style={[styles.sourcePill, isSelected && styles.sourcePillActive]}
+                >
+                  <Text
+                    style={[
+                      styles.sourcePillText,
+                      isSelected && styles.sourcePillTextActive,
+                    ]}
+                  >
+                    {source.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {!sources.length && (
+            <Text style={styles.noSourcesText}>
+              Add a source before saving an entry.
+            </Text>
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
+
+function EntryFields({
+  amount,
+  note,
+  onAmountChange,
+  onNoteChange,
+}: {
+  amount: string;
+  note: string;
+  onAmountChange: (value: string) => void;
+  onNoteChange: (value: string) => void;
+}) {
+  const isNegative = amount.trim().startsWith("-");
+  const displayAmount = isNegative ? amount.replace(/^-+/, "") : amount;
+
+  const changeAmountValue = (text: string) => {
+    const unsignedAmount = sanitizeAmountInput(text).replace(/-/g, "");
+    onAmountChange(
+      isNegative && unsignedAmount ? `-${unsignedAmount}` : unsignedAmount,
+    );
+  };
+
+  const toggleAmountSign = () => {
+    const unsignedAmount = sanitizeAmountInput(amount).replace(/-/g, "");
+    onAmountChange(
+      !isNegative && unsignedAmount ? `-${unsignedAmount}` : unsignedAmount,
+    );
+  };
+
+  return (
+    <View style={styles.inputRow}>
+      <View style={styles.amountInput}>
+        <Pressable
+          accessibilityLabel={
+            isNegative ? "Change amount to positive" : "Change amount to negative"
+          }
+          onPress={toggleAmountSign}
+          style={({ pressed }) => [
+            styles.amountSign,
+            isNegative && styles.amountSignNegative,
+            pressed && commonStyles.buttonPressed,
+          ]}
+        >
+          <Text
+            style={[styles.amountSignText, isNegative && styles.amountSignTextNegative]}
+          >
+            {isNegative ? "-" : "+"}
+          </Text>
+        </Pressable>
+        <TextInput
+          keyboardType="decimal-pad"
+          onChangeText={changeAmountValue}
+          placeholder="Amount"
+          placeholderTextColor={colors.placeholder}
+          style={styles.amountTextInput}
+          value={displayAmount}
+        />
+      </View>
+      <TextInput
+        onChangeText={onNoteChange}
+        placeholder="Note"
+        placeholderTextColor={colors.placeholder}
+        style={styles.input}
+        value={note}
+      />
+    </View>
+  );
+}

@@ -14,7 +14,7 @@ import {
 import { ledgerId } from "../constants";
 import { db } from "../firebase";
 import { entriesFromDocs, peopleFromDocs, sourcesFromDocs } from "../firestoreMappers";
-import type { LedgerEntry, Person, PurchaseSource } from "../types";
+import type { Entry, Person, Source } from "../types";
 
 export const subscribeToPeople = ({
   onData,
@@ -38,7 +38,7 @@ export const subscribeToSources = ({
   onData,
   onError,
 }: {
-  onData: (sources: PurchaseSource[]) => void;
+  onData: (sources: Source[]) => void;
   onError: (error: Error) => void;
 }): Unsubscribe | undefined => {
   if (!db) return undefined;
@@ -57,7 +57,7 @@ export const subscribeToEntries = ({
   onError,
   personId,
 }: {
-  onData: (entries: LedgerEntry[]) => void;
+  onData: (entries: Entry[]) => void;
   onError: (error: Error) => void;
   personId: string;
 }): Unsubscribe | undefined => {
@@ -75,7 +75,7 @@ export const subscribeToEntries = ({
   );
 };
 
-export const createEntry = async (entry: LedgerEntry) => {
+export const createEntry = async (entry: Entry) => {
   if (!db) return;
 
   await addDoc(collection(db, "ledgers", ledgerId(entry.personId), "entries"), {
@@ -101,7 +101,7 @@ export const fetchEntries = async (personId: string) => {
   return entriesFromDocs(snapshot.docs);
 };
 
-export const deleteEntry = async (entry: LedgerEntry) => {
+export const deleteEntry = async (entry: Entry) => {
   if (!db) return;
 
   await deleteDoc(doc(db, "ledgers", ledgerId(entry.personId), "entries", entry.id));
@@ -124,7 +124,7 @@ export const deletePerson = async (person: Person) => {
   await deleteDoc(doc(db, "people", person.id));
 };
 
-export const createPurchaseSource = async (name: string) => {
+export const createSource = async (name: string) => {
   if (!db) return;
 
   await addDoc(collection(db, "purchaseSources"), {
@@ -133,7 +133,7 @@ export const createPurchaseSource = async (name: string) => {
   });
 };
 
-export const deletePurchaseSource = async (source: PurchaseSource) => {
+export const deleteSource = async (source: Source) => {
   if (!db) return;
 
   await deleteDoc(doc(db, "purchaseSources", source.id));

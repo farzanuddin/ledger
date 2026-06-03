@@ -9,18 +9,18 @@ import {
 import {
   createEntry,
   createPerson,
-  createPurchaseSource,
+  createSource,
   deleteEntry,
   deletePerson,
-  deletePurchaseSource,
+  deleteSource,
   fetchEntries,
   subscribeToEntries,
   subscribeToPeople,
   subscribeToSources,
 } from "../services/ledgerService";
-import type { LedgerEntry, Person, PurchaseSource } from "../types";
+import type { Entry, Person, Source } from "../types";
 import { getErrorMessage } from "../utils/errors";
-import { sourceIdFromName } from "../utils/ids";
+import { sourceIdFromName } from "../utils/ledger";
 import {
   parseAmountCents,
   validateEntryInput,
@@ -28,11 +28,11 @@ import {
   validateSourceName,
 } from "../utils/validation";
 
-export function useLedgerData() {
+export function useLedger() {
   const [people, setPeople] = useState<Person[]>([]);
   const [selectedPersonId, setSelectedPersonId] = useState("");
-  const [entries, setEntries] = useState<LedgerEntry[]>([]);
-  const [purchaseSources, setPurchaseSources] = useState<PurchaseSource[]>([]);
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
   const [hasLoadedLocalData, setHasLoadedLocalData] = useState(Boolean(db));
   const [isPeopleLoading, setIsPeopleLoading] = useState(Boolean(db));
   const [isSourcesLoading, setIsSourcesLoading] = useState(Boolean(db));
@@ -55,11 +55,6 @@ export function useLedgerData() {
     [entries, selectedPerson],
   );
 
-  const editablePurchaseSources = useMemo(
-    () => purchaseSources,
-    [purchaseSources],
-  );
-
   const balanceCents = useMemo(
     () => userEntries.reduce((total, entry) => total + entry.amountCents, 0),
     [userEntries],
@@ -80,7 +75,7 @@ export function useLedgerData() {
 
         setEntries(localData.entries);
         setPeople(localData.people);
-        setPurchaseSources(localData.purchaseSources);
+        setSources(localData.sources);
         setSelectedPersonId(localData.selectedPersonId);
       })
       .catch((error) => {
@@ -102,12 +97,12 @@ export function useLedgerData() {
     saveLocalLedgerData({
       entries,
       people,
-      purchaseSources,
+      sources,
       selectedPersonId,
     }).catch((error) => {
       Alert.alert("Could not save ledger", getErrorMessage(error));
     });
-  }, [entries, hasLoadedLocalData, people, purchaseSources, selectedPersonId]);
+  }, [entries, hasLoadedLocalData, people, sources, selectedPersonId]);
 
   useEffect(() => {
     if (!db) return;
@@ -147,7 +142,7 @@ export function useLedgerData() {
 
     return subscribeToSources({
       onData: (nextSources) => {
-        setPurchaseSources(nextSources);
+        setSources(nextSources);
         setIsSourcesLoading(false);
       },
       onError: (error) => {
@@ -202,7 +197,7 @@ export function useLedgerData() {
         return;
       }
 
-      const nextEntry: LedgerEntry = {
+      const nextEntry: Entry = {
         id: `local-${Date.now()}`,
         amountCents: parseAmountCents(amount) || 0,
         source,
@@ -240,7 +235,7 @@ export function useLedgerData() {
       return false;
     }
 
-    const entry: LedgerEntry = {
+    const entry: Entry = {
       id: `local-${Date.now()}`,
       amountCents: -balanceCents,
       source: "Settlement",
@@ -292,7 +287,7 @@ export function useLedgerData() {
     }
   }, [selectedPerson]);
 
-  const removeEntry = useCallback(async (entry: LedgerEntry) => {
+  const removeEntry = useCallback(async (entry: Entry) => {
     try {
       if (db) {
         await deleteEntry(entry);
@@ -372,11 +367,11 @@ export function useLedgerData() {
     [people, selectedPersonId],
   );
 
-  const addPurchaseSource = useCallback(
+  const addSource = useCallback(
     async (name: string) => {
       const trimmedName = name.trim();
 
-      const validation = validateSourceName(trimmedName, purchaseSources);
+      const validation = validateSourceName(trimmedName, sources);
       if (!validation.ok) {
         Alert.alert(validation.title, validation.message);
         return false;
@@ -386,9 +381,9 @@ export function useLedgerData() {
 
       try {
         if (db) {
-          await createPurchaseSource(trimmedName);
+          await createSource(trimmedName);
         } else {
-          setPurchaseSources((currentSources) => [
+          setSources((currentSources) => [
             ...currentSources,
             {
               id: sourceIdFromName(trimmedName) || `source-${Date.now()}`,
@@ -405,21 +400,21 @@ export function useLedgerData() {
         setIsSavingSource(false);
       }
     },
-    [purchaseSources],
+    [sources],
   );
 
-  const removePurchaseSource = useCallback(
-    async (sourceToRemove: PurchaseSource) => {
-      if (purchaseSources.length <= 1) {
+  const removeSource = useCallback(
+    async (sourceToRemove: Source) => {
+      if (sources.length <= 1) {
         Alert.alert("Keep one source", "At least one source is required.");
         return;
       }
 
       try {
         if (db) {
-          await deletePurchaseSource(sourceToRemove);
+          await deleteSource(sourceToRemove);
         } else {
-          setPurchaseSources((currentSources) =>
+          setSources((currentSources) =>
             currentSources.filter((item) => item.id !== sourceToRemove.id),
           );
         }
@@ -427,41 +422,44 @@ export function useLedgerData() {
         Alert.alert("Could not remove source", getErrorMessage(error));
       }
     },
-    [purchaseSources],
+    [sources],
   );
 
   return useMemo(
     () => ({
-      addEntry,
-      addPerson,
-      addPurchaseSource,
+      actions: {
+        addEntry,
+        addPerson,
+        addSource,
+        refreshEntries,
+        removeEntry,
+        removePerson,
+        removeSource,
+        selectPerson: setSelectedPersonId,
+        settleBalance,
+      },
       balanceCents,
-      editablePurchaseSources,
-      isRefreshing,
-      isEntriesLoading,
-      isPeopleLoading,
-      isSourcesLoading,
-      isSaving,
-      isSavingPerson,
-      isSavingSource,
+      entries: userEntries,
+      loading: {
+        entries: isEntriesLoading,
+        people: isPeopleLoading,
+        refreshing: isRefreshing,
+        savingEntry: isSaving,
+        savingPerson: isSavingPerson,
+        savingSource: isSavingSource,
+        sources: isSourcesLoading,
+      },
+      sources,
       people,
-      purchaseSources,
-      refreshEntries,
-      removeEntry,
-      removePerson,
-      removePurchaseSource,
       selectedPerson,
       selectedPersonId,
-      setSelectedPersonId,
-      settleBalance,
-      userEntries,
     }),
     [
       addEntry,
       addPerson,
-      addPurchaseSource,
+      addSource,
       balanceCents,
-      editablePurchaseSources,
+      sources,
       isRefreshing,
       isEntriesLoading,
       isPeopleLoading,
@@ -470,11 +468,10 @@ export function useLedgerData() {
       isSavingPerson,
       isSavingSource,
       people,
-      purchaseSources,
       refreshEntries,
       removeEntry,
       removePerson,
-      removePurchaseSource,
+      removeSource,
       selectedPerson,
       selectedPersonId,
       settleBalance,

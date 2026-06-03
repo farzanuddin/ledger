@@ -1,12 +1,12 @@
 import { Timestamp } from "firebase/firestore";
-import type { LedgerEntry, Person, PurchaseSource } from "./types";
+import type { Entry, Person, Source } from "./types";
 
 type FirestoreDoc = {
   id: string;
   data: () => Record<string, unknown>;
 };
 
-export const entriesFromDocs = (docs: FirestoreDoc[]): LedgerEntry[] =>
+export const entriesFromDocs = (docs: FirestoreDoc[]): Entry[] =>
   docs.map((entryDoc) => {
     const data = entryDoc.data();
     const createdAt =
@@ -15,20 +15,20 @@ export const entriesFromDocs = (docs: FirestoreDoc[]): LedgerEntry[] =>
     return {
       id: entryDoc.id,
       amountCents: typeof data.amountCents === "number" ? data.amountCents : 0,
-      source: typeof data.source === "string" ? data.source : "Default",
+      source: typeof data.source === "string" ? data.source : "Unknown source",
       note: typeof data.note === "string" ? data.note : "",
       personId:
         typeof data.personId === "string"
           ? data.personId
           : typeof data.user === "string"
             ? data.user.toLowerCase()
-            : "dad",
-      user: typeof data.user === "string" ? data.user : "Dad",
+            : "unknown",
+      user: typeof data.user === "string" ? data.user : "Unknown",
       createdAt,
     };
   });
 
-const namedRecordFromDoc = <T extends Person | PurchaseSource>(
+const namedRecordFromDoc = <T extends Person | Source>(
   itemDoc: FirestoreDoc,
 ): T | null => {
   const data = itemDoc.data();
@@ -41,7 +41,7 @@ export const peopleFromDocs = (docs: FirestoreDoc[]): Person[] =>
     .map((personDoc) => namedRecordFromDoc<Person>(personDoc))
     .filter((item): item is Person => item !== null);
 
-export const sourcesFromDocs = (docs: FirestoreDoc[]): PurchaseSource[] =>
+export const sourcesFromDocs = (docs: FirestoreDoc[]): Source[] =>
   docs
-    .map((sourceDoc) => namedRecordFromDoc<PurchaseSource>(sourceDoc))
-    .filter((item): item is PurchaseSource => item !== null);
+    .map((sourceDoc) => namedRecordFromDoc<Source>(sourceDoc))
+    .filter((item): item is Source => item !== null);
