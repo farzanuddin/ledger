@@ -1,6 +1,7 @@
 import { memo, useCallback } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, radii, spacing, typography } from "../theme";
+import { MaterialIcons } from "@expo/vector-icons";
+import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
 import type { Entry } from "../types";
 import { formatDecimalAmount, formatEntryDate } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
@@ -76,8 +77,15 @@ const EntryRow = memo(function EntryRow({
             {entry.amountCents < 0 ? ")" : ""}
           </Text>
         </View>
-        <Pressable onPress={() => onRequestDelete(entry)}>
-          <Text style={styles.deleteText}>Delete</Text>
+        <Pressable
+          accessibilityLabel={`Delete ${entry.note || "entry"}`}
+          onPress={() => onRequestDelete(entry)}
+          style={({ pressed }) => [
+            styles.deleteButton,
+            pressed && commonStyles.buttonPressed,
+          ]}
+        >
+          <MaterialIcons name="delete-outline" style={styles.deleteIcon} />
         </Pressable>
       </View>
     </View>
@@ -114,7 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.control,
     borderWidth: 1,
     flexDirection: "row",
-    gap: spacing.xxl,
+    gap: spacing.section,
     marginBottom: spacing.xl,
     padding: spacing.section,
   },
@@ -152,7 +160,7 @@ const styles = StyleSheet.create({
   entryAmountRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   entryAmount: {
     fontSize: typography.sizes.input,
@@ -164,10 +172,20 @@ const styles = StyleSheet.create({
   negativeAmount: {
     color: colors.danger,
   },
-  deleteText: {
-    color: colors.textMuted,
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
+  deleteButton: {
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderColor: colors.border,
+    borderRadius: radii.control,
+    borderWidth: 1,
+    height: sizes.compactIconButton,
+    justifyContent: "center",
     marginTop: spacing.lg,
+    width: sizes.compactIconButton,
+  },
+  deleteIcon: {
+    color: colors.danger,
+    fontSize: typography.sizes.icon,
+    lineHeight: 21,
   },
 });

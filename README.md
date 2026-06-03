@@ -1,6 +1,6 @@
 # Ledger
 
-A lightweight shared ledger app built with Expo, React Native, and TypeScript. Track purchases, categorize entries by source, and keep totals synced through Firebase when configured.
+A lightweight shared ledger app built with Expo, React Native, and TypeScript. Track purchases, categorize entries by source, and keep totals synced through Firebase.
 
 ## Objective
 
@@ -10,8 +10,7 @@ This project was built as a small practical app for tracking money between peopl
 
 - **Purchase entries** — record amount, note, date, person, and purchase source
 - **People and source management** — add or remove ledger people and purchase sources
-- **Firebase sync** — persist entries to Firestore when Expo public Firebase variables are configured
-- **Local fallback** — persist locally with browser `localStorage` on web or AsyncStorage on iOS/Android when Firebase is not configured
+- **Firebase sync** — persist entries, people, and source options to Firestore
 - **PDF sharing** — generate and share a ledger PDF from native devices
 - **Delete confirmation** — review entry details before removing a purchase
 
@@ -25,7 +24,6 @@ This project was built as a small practical app for tracking money between peopl
 | [React Native Web](https://necolas.github.io/react-native-web/) | ^0.21.0  | Web rendering           |
 | [TypeScript](https://www.typescriptlang.org/)                   |  ~5.9.2  | Language                |
 | [Firebase](https://firebase.google.com/)                        | ^12.13.0 | Firestore persistence   |
-| [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) | 2.2.0 | Native local persistence |
 
 ## Getting Started
 
@@ -59,10 +57,7 @@ The app reads `EXPO_PUBLIC_FIREBASE_*` variables and stores entries in Firestore
 
 The app does not create default people or sources. Add them through Settings, or pre-populate Firestore yourself.
 
-If Firebase variables are not present, the app uses local persistence instead:
-
-- Expo web: browser `localStorage`
-- iOS/Android: `@react-native-async-storage/async-storage`
+Firebase configuration is required. If Firebase variables are missing, the app shows an unconfigured state and disables ledger actions instead of saving locally.
 
 ## Building for Your Own Use
 

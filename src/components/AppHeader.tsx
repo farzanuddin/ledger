@@ -4,6 +4,7 @@ import { colors, commonStyles, radii, sizes, spacing, typography } from "../them
 import type { Person } from "../types";
 
 export function AppHeader({
+  isDisabled,
   isRefreshing,
   onOpenSettings,
   onRefresh,
@@ -12,6 +13,7 @@ export function AppHeader({
   peopleCountLabel,
   selectedPerson,
 }: {
+  isDisabled: boolean;
   isRefreshing: boolean;
   onOpenSettings: () => void;
   onRefresh: () => void;
@@ -27,22 +29,24 @@ export function AppHeader({
         <View style={styles.headerActions}>
           <Pressable
             accessibilityLabel="Manage sources"
+            disabled={isDisabled}
             onPress={onOpenSettings}
             style={({ pressed }) => [
               styles.headerIconButton,
-              pressed && commonStyles.buttonPressed,
+              pressed && !isDisabled && commonStyles.buttonPressed,
+              isDisabled && commonStyles.buttonDisabled,
             ]}
           >
             <MaterialIcons name="settings" style={styles.headerIcon} />
           </Pressable>
           <Pressable
             accessibilityLabel="Refresh ledger"
-            disabled={isRefreshing}
+            disabled={isDisabled || isRefreshing}
             onPress={onRefresh}
             style={({ pressed }) => [
               styles.headerIconButton,
-              pressed && commonStyles.buttonPressed,
-              isRefreshing && commonStyles.buttonDisabled,
+              pressed && !isDisabled && commonStyles.buttonPressed,
+              (isDisabled || isRefreshing) && commonStyles.buttonDisabled,
             ]}
           >
             <MaterialIcons
@@ -125,7 +129,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radii.control,
     flex: 1,
-    marginHorizontal: spacing.xs,
+    marginHorizontal: spacing.sm,
     paddingVertical: spacing.xl,
   },
   tabActive: {

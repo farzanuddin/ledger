@@ -53,6 +53,7 @@ export default function App() {
         >
           <View style={styles.nonScrollContent}>
             <AppHeader
+              isDisabled={!ledger.ready}
               isRefreshing={ledger.loading.refreshing}
               onOpenSettings={() => setSettingsModalVisible(true)}
               onRefresh={ledger.actions.refreshEntries}
@@ -64,6 +65,7 @@ export default function App() {
             <View style={styles.balancePanelWrap}>
               <BalancePanel
                 balanceCents={ledger.balanceCents}
+                isDisabled={!ledger.ready}
                 isSharing={isSharing}
                 onAddEntry={() => setAddEntryModalVisible(true)}
                 onSharePdf={handleSharePdf}

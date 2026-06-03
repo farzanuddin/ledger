@@ -102,6 +102,7 @@ export function SettingsModal({
 }
 
 const styles = StyleSheet.create({
+  // Modal shell
   modalHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -120,6 +121,7 @@ const styles = StyleSheet.create({
   content: {
     maxHeight: "100%",
   },
+  // Tabs
   tabs: {
     flexDirection: "row",
     gap: spacing.md,
@@ -147,6 +149,7 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: colors.surface,
   },
+  // Add row
   addRow: {
     flexDirection: "row",
     gap: spacing.lg,
@@ -161,7 +164,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.sizes.base,
     minHeight: sizes.controlMinHeight,
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.section,
   },
   addButton: {
     alignItems: "center",
@@ -170,12 +173,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: sizes.controlMinHeight,
   },
+  // List
   settingsList: {
     maxHeight: 360,
   },
   listContent: {
     gap: spacing.lg,
-    paddingTop: spacing.xxs,
+    paddingTop: spacing.sm,
   },
   row: {
     alignItems: "center",

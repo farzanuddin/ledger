@@ -1,18 +1,19 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, commonStyles, radii, sizes, spacing, typography } from "../theme";
-import { firebaseIsConfigured } from "../firebase";
 import { formatDecimalAmount } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
 
 export function BalancePanel({
   balanceCents,
+  isDisabled,
   isSharing,
   onAddEntry,
   onSharePdf,
   onSettleBalance,
 }: {
   balanceCents: number;
+  isDisabled: boolean;
   isSharing: boolean;
   onAddEntry: () => void;
   onSharePdf: () => void;
@@ -20,9 +21,12 @@ export function BalancePanel({
 }) {
   return (
     <View style={styles.balancePanel}>
-      <Text style={styles.balanceLabel}>Total purchases</Text>
+      <Text style={styles.balanceLabel}>Balance</Text>
       <View style={styles.balanceAmountRow}>
-        <AedSymbol color={balanceCents < 0 ? colors.danger : colors.text} size="large" />
+        <AedSymbol
+          color={balanceCents < 0 ? colors.danger : colors.text}
+          size="large"
+        />
         <Text
           style={[
             styles.balanceAmount,
@@ -35,12 +39,12 @@ export function BalancePanel({
         </Text>
         <Pressable
           accessibilityLabel="Share ledger PDF"
-          disabled={isSharing}
+          disabled={isDisabled || isSharing}
           onPress={onSharePdf}
           style={({ pressed }) => [
             styles.balanceIconButton,
-            pressed && commonStyles.buttonPressed,
-            isSharing && commonStyles.buttonDisabled,
+            pressed && !isDisabled && commonStyles.buttonPressed,
+            (isDisabled || isSharing) && commonStyles.buttonDisabled,
           ]}
         >
           <MaterialIcons
@@ -50,19 +54,27 @@ export function BalancePanel({
         </Pressable>
       </View>
       <Text style={styles.syncLabel}>
-        {firebaseIsConfigured ? "Synced with Firebase" : "Firebase not configured"}
+        {isDisabled ? "Connect Firebase to use the ledger" : "Synced with Firebase"}
       </Text>
       <View style={styles.actionRow}>
-        <Pressable onPress={onAddEntry} style={styles.addEntryButton}>
+        <Pressable
+          disabled={isDisabled}
+          onPress={onAddEntry}
+          style={({ pressed }) => [
+            styles.addEntryButton,
+            pressed && !isDisabled && commonStyles.buttonPressed,
+            isDisabled && commonStyles.buttonDisabled,
+          ]}
+        >
           <Text style={styles.addEntryButtonText}>Add entry</Text>
         </Pressable>
         <Pressable
-          disabled={balanceCents === 0}
+          disabled={isDisabled || balanceCents === 0}
           onPress={onSettleBalance}
           style={({ pressed }) => [
             styles.settleButton,
-            pressed && balanceCents !== 0 && commonStyles.buttonPressed,
-            balanceCents === 0 && commonStyles.buttonDisabled,
+            pressed && !isDisabled && balanceCents !== 0 && commonStyles.buttonPressed,
+            (isDisabled || balanceCents === 0) && commonStyles.buttonDisabled,
           ]}
         >
           <MaterialIcons name="done-all" style={styles.settleIcon} />
@@ -95,6 +107,7 @@ const styles = StyleSheet.create({
   },
   balanceAmount: {
     color: colors.text,
+    flexShrink: 1,
     fontSize: typography.sizes.balance,
     fontWeight: typography.weights.bold,
     letterSpacing: 0,

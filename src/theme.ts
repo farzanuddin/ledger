@@ -31,19 +31,15 @@ export const sizes = {
 } as const;
 
 export const spacing = {
-  xxs: 2,
-  xs: 3,
   sm: 4,
   md: 6,
   lg: 8,
   xl: 10,
-  xxl: 12,
   section: 14,
   panel: 16,
   card: 18,
   modal: 20,
   screen: 20,
-  page: 24,
 } as const;
 
 export const typography = {
@@ -56,7 +52,7 @@ export const typography = {
     input: 16,
     title: 18,
     icon: 21,
-    balance: 42,
+    balance: 38,
   },
   weights: {
     semibold: "700",

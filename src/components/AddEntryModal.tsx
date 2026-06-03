@@ -19,7 +19,7 @@ export function AddEntryModal({
     amount: string;
     note: string;
     source: string;
-  }) => Promise<boolean | void>;
+  }) => Promise<boolean>;
   onClose: () => void;
   sources: Source[];
   visible: boolean;
@@ -95,6 +95,7 @@ export function AddEntryModal({
 }
 
 const styles = StyleSheet.create({
+  // Modal shell
   modalHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -110,6 +111,7 @@ const styles = StyleSheet.create({
   formInModal: {
     padding: spacing.modal,
   },
+  // Submit state
   addButton: {
     alignItems: "center",
     backgroundColor: colors.primary,
@@ -129,6 +131,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     marginTop: spacing.lg,
   },
+  // Source picker
   sourceHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -177,6 +180,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginTop: spacing.lg,
   },
+  // Entry fields
   inputRow: {
     flexDirection: "row",
     gap: spacing.xl,

@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
-import { db } from "../firebase";
-import { clearLegacyDemoStorage } from "../services/legacyStorage";
-import {
-  loadLocalLedgerData,
-  saveLocalLedgerData,
-} from "../services/localLedgerStorage";
+import { db, firebaseIsConfigured } from "../firebase";
 import {
   createEntry,
   createPerson,
@@ -20,10 +15,8 @@ import {
 } from "../services/ledgerService";
 import type { Entry, Person, Source } from "../types";
 import { getErrorMessage } from "../utils/errors";
-import { sourceIdFromName } from "../utils/ledger";
 import {
   parseAmountCents,
-  validateEntryInput,
   validatePersonName,
   validateSourceName,
 } from "../utils/validation";
@@ -33,7 +26,6 @@ export function useLedger() {
   const [selectedPersonId, setSelectedPersonId] = useState("");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
-  const [hasLoadedLocalData, setHasLoadedLocalData] = useState(Boolean(db));
   const [isPeopleLoading, setIsPeopleLoading] = useState(Boolean(db));
   const [isSourcesLoading, setIsSourcesLoading] = useState(Boolean(db));
   const [isEntriesLoading, setIsEntriesLoading] = useState(Boolean(db));
@@ -60,49 +52,15 @@ export function useLedger() {
     [userEntries],
   );
 
-  useEffect(() => {
-    clearLegacyDemoStorage();
+  const requireFirebase = useCallback(() => {
+    if (db) return true;
+
+    Alert.alert(
+      "Firebase not configured",
+      "Connect Firebase before using the ledger.",
+    );
+    return false;
   }, []);
-
-  useEffect(() => {
-    if (db) return;
-
-    let isMounted = true;
-
-    loadLocalLedgerData()
-      .then((localData) => {
-        if (!isMounted) return;
-
-        setEntries(localData.entries);
-        setPeople(localData.people);
-        setSources(localData.sources);
-        setSelectedPersonId(localData.selectedPersonId);
-      })
-      .catch((error) => {
-        Alert.alert("Could not load saved ledger", getErrorMessage(error));
-      })
-      .finally(() => {
-        if (isMounted) setHasLoadedLocalData(true);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (db) return;
-    if (!hasLoadedLocalData) return;
-
-    saveLocalLedgerData({
-      entries,
-      people,
-      sources,
-      selectedPersonId,
-    }).catch((error) => {
-      Alert.alert("Could not save ledger", getErrorMessage(error));
-    });
-  }, [entries, hasLoadedLocalData, people, sources, selectedPersonId]);
 
   useEffect(() => {
     if (!db) return;
@@ -185,16 +143,11 @@ export function useLedger() {
       note: string;
       source: string;
     }) => {
+      if (!requireFirebase()) return false;
+
       if (!selectedPerson) {
         Alert.alert("Add a person first", "Create a person before adding entries.");
-        return;
-      }
-
-      const validation = validateEntryInput({ amount, note, source });
-
-      if (!validation.ok) {
-        Alert.alert(validation.title, validation.message);
-        return;
+        return false;
       }
 
       const nextEntry: Entry = {
@@ -210,21 +163,22 @@ export function useLedger() {
       setIsSaving(true);
 
       try {
-        if (db) {
-          await createEntry(nextEntry);
-        } else {
-          setEntries((currentEntries) => [nextEntry, ...currentEntries]);
-        }
+        await createEntry(nextEntry);
+
+        return true;
       } catch (error) {
         Alert.alert("Could not save entry", getErrorMessage(error));
+        return false;
       } finally {
         setIsSaving(false);
       }
     },
-    [selectedPerson],
+    [requireFirebase, selectedPerson],
   );
 
   const settleBalance = useCallback(async () => {
+    if (!requireFirebase()) return false;
+
     if (!selectedPerson) {
       Alert.alert("Choose a person first", "Select a person before settling.");
       return false;
@@ -248,11 +202,7 @@ export function useLedger() {
     setIsSaving(true);
 
     try {
-      if (db) {
-        await createEntry(entry);
-      } else {
-        setEntries((currentEntries) => [entry, ...currentEntries]);
-      }
+      await createEntry(entry);
 
       return true;
     } catch (error) {
@@ -261,16 +211,13 @@ export function useLedger() {
     } finally {
       setIsSaving(false);
     }
-  }, [balanceCents, selectedPerson]);
+  }, [balanceCents, requireFirebase, selectedPerson]);
 
   const refreshEntries = useCallback(async () => {
+    if (!requireFirebase()) return;
+
     if (!selectedPerson) {
       setEntries([]);
-      return;
-    }
-
-    if (!db) {
-      setEntries((currentEntries) => [...currentEntries]);
       return;
     }
 
@@ -285,24 +232,25 @@ export function useLedger() {
       setIsRefreshing(false);
       setIsEntriesLoading(false);
     }
-  }, [selectedPerson]);
+  }, [requireFirebase, selectedPerson]);
 
-  const removeEntry = useCallback(async (entry: Entry) => {
-    try {
-      if (db) {
+  const removeEntry = useCallback(
+    async (entry: Entry) => {
+      if (!requireFirebase()) return;
+
+      try {
         await deleteEntry(entry);
-      } else {
-        setEntries((currentEntries) =>
-          currentEntries.filter((item) => item.id !== entry.id),
-        );
+      } catch (error) {
+        Alert.alert("Could not delete entry", getErrorMessage(error));
       }
-    } catch (error) {
-      Alert.alert("Could not delete entry", getErrorMessage(error));
-    }
-  }, []);
+    },
+    [requireFirebase],
+  );
 
   const addPerson = useCallback(
     async (name: string) => {
+      if (!requireFirebase()) return false;
+
       const trimmedName = name.trim();
 
       const validation = validatePersonName(trimmedName, people);
@@ -314,19 +262,7 @@ export function useLedger() {
       setIsSavingPerson(true);
 
       try {
-        let nextPersonId = sourceIdFromName(trimmedName) || `person-${Date.now()}`;
-
-        if (db) {
-          nextPersonId = await createPerson(trimmedName);
-        } else {
-          setPeople((currentPeople) => [
-            ...currentPeople,
-            {
-              id: nextPersonId,
-              name: trimmedName,
-            },
-          ]);
-        }
+        const nextPersonId = await createPerson(trimmedName);
 
         setSelectedPersonId(nextPersonId);
         return true;
@@ -337,24 +273,20 @@ export function useLedger() {
         setIsSavingPerson(false);
       }
     },
-    [people],
+    [people, requireFirebase],
   );
 
   const removePerson = useCallback(
     async (personToRemove: Person) => {
+      if (!requireFirebase()) return;
+
       if (people.length <= 1) {
         Alert.alert("Keep one person", "At least one person is required.");
         return;
       }
 
       try {
-        if (db) {
-          await deletePerson(personToRemove);
-        } else {
-          setPeople((currentPeople) =>
-            currentPeople.filter((item) => item.id !== personToRemove.id),
-          );
-        }
+        await deletePerson(personToRemove);
 
         if (selectedPersonId === personToRemove.id) {
           const nextPerson = people.find((item) => item.id !== personToRemove.id);
@@ -364,11 +296,13 @@ export function useLedger() {
         Alert.alert("Could not remove person", getErrorMessage(error));
       }
     },
-    [people, selectedPersonId],
+    [people, requireFirebase, selectedPersonId],
   );
 
   const addSource = useCallback(
     async (name: string) => {
+      if (!requireFirebase()) return false;
+
       const trimmedName = name.trim();
 
       const validation = validateSourceName(trimmedName, sources);
@@ -380,17 +314,7 @@ export function useLedger() {
       setIsSavingSource(true);
 
       try {
-        if (db) {
-          await createSource(trimmedName);
-        } else {
-          setSources((currentSources) => [
-            ...currentSources,
-            {
-              id: sourceIdFromName(trimmedName) || `source-${Date.now()}`,
-              name: trimmedName,
-            },
-          ]);
-        }
+        await createSource(trimmedName);
 
         return true;
       } catch (error) {
@@ -400,29 +324,25 @@ export function useLedger() {
         setIsSavingSource(false);
       }
     },
-    [sources],
+    [requireFirebase, sources],
   );
 
   const removeSource = useCallback(
     async (sourceToRemove: Source) => {
+      if (!requireFirebase()) return;
+
       if (sources.length <= 1) {
         Alert.alert("Keep one source", "At least one source is required.");
         return;
       }
 
       try {
-        if (db) {
-          await deleteSource(sourceToRemove);
-        } else {
-          setSources((currentSources) =>
-            currentSources.filter((item) => item.id !== sourceToRemove.id),
-          );
-        }
+        await deleteSource(sourceToRemove);
       } catch (error) {
         Alert.alert("Could not remove source", getErrorMessage(error));
       }
     },
-    [sources],
+    [requireFirebase, sources],
   );
 
   return useMemo(
@@ -449,6 +369,7 @@ export function useLedger() {
         savingSource: isSavingSource,
         sources: isSourcesLoading,
       },
+      ready: firebaseIsConfigured,
       sources,
       people,
       selectedPerson,
