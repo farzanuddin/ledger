@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -31,17 +31,40 @@ export default function App() {
   const sourceDelete = useConfirmAction<Source>();
   const settleConfirm = useConfirmAction<void>();
 
-  const peopleCountLabel = formatPeopleCountLabel(ledger.people.length);
+  const handleOpenSettings = useCallback(
+    () => setSettingsModalVisible(true),
+    [],
+  );
+  const handleOpenAddEntry = useCallback(
+    () => setAddEntryModalVisible(true),
+    [],
+  );
+  const handleSettleBalance = useCallback(
+    () => settleConfirm.request(),
+    [settleConfirm],
+  );
+  const handleCloseAddEntry = useCallback(
+    () => setAddEntryModalVisible(false),
+    [],
+  );
+  const handleCloseSettings = useCallback(
+    () => setSettingsModalVisible(false),
+    [],
+  );
+
+  const peopleCountLabel = useMemo(
+    () => formatPeopleCountLabel(ledger.people.length),
+    [ledger.people.length],
+  );
   const isLedgerDisabled = !ledger.ready;
 
   const handleSharePdf = useCallback(
     () =>
       shareLedgerPdf({
-        balanceCents: ledger.balanceCents,
         entries: ledger.entries,
         user: ledger.selectedPerson?.name || "Ledger",
       }),
-    [ledger.balanceCents, ledger.entries, ledger.selectedPerson?.name, shareLedgerPdf],
+    [ledger.entries, ledger.selectedPerson?.name, shareLedgerPdf],
   );
 
   return (
@@ -56,7 +79,7 @@ export default function App() {
           <View style={styles.nonScrollContent}>
             <AppHeader
               isDisabled={isLedgerDisabled}
-              onOpenSettings={() => setSettingsModalVisible(true)}
+              onOpenSettings={handleOpenSettings}
               onRefresh={ledger.actions.refreshEntries}
               onSelectPerson={ledger.actions.selectPerson}
               people={ledger.people}
@@ -68,9 +91,9 @@ export default function App() {
                 balanceCents={ledger.balanceCents}
                 isDisabled={isLedgerDisabled}
                 isSharing={isSharing}
-                onAddEntry={() => setAddEntryModalVisible(true)}
+                onAddEntry={handleOpenAddEntry}
                 onSharePdf={handleSharePdf}
-                onSettleBalance={() => settleConfirm.request()}
+                onSettleBalance={handleSettleBalance}
               />
             </View>
           </View>
@@ -84,7 +107,7 @@ export default function App() {
           <AddEntryModal
             isSaving={ledger.loading.savingEntry}
             onAddEntry={ledger.actions.addEntry}
-            onClose={() => setAddEntryModalVisible(false)}
+            onClose={handleCloseAddEntry}
             sources={ledger.sources}
             visible={addEntryModalVisible}
           />
@@ -97,7 +120,7 @@ export default function App() {
             isSourcesLoading={ledger.loading.sources}
             onAddPerson={ledger.actions.addPerson}
             onAddSource={ledger.actions.addSource}
-            onClose={() => setSettingsModalVisible(false)}
+            onClose={handleCloseSettings}
             onDeletePerson={personDelete.request}
             onDeleteSource={sourceDelete.request}
             people={ledger.people}

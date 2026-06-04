@@ -19,6 +19,11 @@ const numberWords: Record<number, string> = {
 
 export const formatDecimalAmount = (amount: number) => amountFormatter.format(amount);
 
+export const formatBalanceCell = (amountCents: number) => {
+  const formatted = formatDecimalAmount(Math.abs(amountCents) / 100);
+  return amountCents < 0 ? `(${formatted})` : formatted;
+};
+
 export const formatAmount = (amountCents: number) =>
   `${amountCents < 0 ? "(" : ""}AED ${amountFormatter.format(
     Math.abs(amountCents) / 100,

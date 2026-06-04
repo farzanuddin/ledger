@@ -1,9 +1,10 @@
+import { memo, useCallback, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, modalStyles, radii, sizes, spacing, typography } from "../theme";
 import { ModalSheet } from "./ModalSheet";
 
-export function ConfirmModal({
+export const ConfirmModal = memo(function ConfirmModal({
   body,
   confirmLabel = "Delete",
   meta,
@@ -22,11 +23,22 @@ export function ConfirmModal({
   variant?: "danger" | "primary";
   visible: boolean;
 }) {
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const handleConfirm = useCallback(async () => {
+    setIsConfirming(true);
+    try {
+      await onConfirm();
+    } finally {
+      setIsConfirming(false);
+    }
+  }, [onConfirm]);
+
   return (
     <ModalSheet visible={visible} onClose={onCancel}>
       <View style={modalStyles.header}>
         <Text style={modalStyles.title}>{title}</Text>
-        <Pressable onPress={onCancel}>
+        <Pressable accessibilityLabel="Close confirmation" onPress={onCancel}>
           <MaterialIcons name="close" size={24} color={colors.muted} />
         </Pressable>
       </View>
@@ -36,23 +48,31 @@ export function ConfirmModal({
         {meta ? <Text style={styles.confirmMeta}>{meta}</Text> : null}
 
         <View style={styles.confirmButtons}>
-          <Pressable onPress={onCancel} style={styles.cancelButton}>
+          <Pressable
+            accessibilityLabel="Cancel"
+            onPress={onCancel}
+            style={styles.cancelButton}
+          >
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </Pressable>
           <Pressable
-            onPress={onConfirm}
+            accessibilityLabel={isConfirming ? "Saving" : confirmLabel}
+            disabled={isConfirming}
+            onPress={handleConfirm}
             style={[
               styles.confirmButton,
               variant === "primary" && styles.confirmButtonPrimary,
             ]}
           >
-            <Text style={styles.confirmButtonText}>{confirmLabel}</Text>
+            <Text style={styles.confirmButtonText}>
+              {isConfirming ? "Saving..." : confirmLabel}
+            </Text>
           </Pressable>
         </View>
       </View>
     </ModalSheet>
   );
-}
+});
 
 const styles = StyleSheet.create({
   confirmText: {

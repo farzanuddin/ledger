@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import {
   Animated,
@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { colors, radii, spacing } from "../theme";
 
-export function ModalSheet({
+export const ModalSheet = memo(function ModalSheet({
   children,
   contentStyle,
   onClose,
@@ -111,7 +111,7 @@ export function ModalSheet({
       </Animated.View>
     </Modal>
   );
-}
+});
 
 const styles = StyleSheet.create({
   overlay: {
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radii.sheet,
     borderTopRightRadius: radii.sheet,
-    paddingBottom: 40,
+    paddingBottom: spacing.screen * 2,
   },
   contentCenter: {
     backgroundColor: colors.background,

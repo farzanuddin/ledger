@@ -7,7 +7,6 @@ import type { Entry } from "../types";
 import { buildLedgerReportHtml } from "../utils/report";
 
 type ShareLedgerPdfParams = {
-  balanceCents: number;
   entries: Entry[];
   user: string;
 };
@@ -16,7 +15,7 @@ export const useLedgerSharing = () => {
   const [isSharing, setIsSharing] = useState(false);
 
   const shareLedgerPdf = useCallback(
-    async ({ balanceCents, entries, user }: ShareLedgerPdfParams) => {
+    async ({ entries, user }: ShareLedgerPdfParams) => {
       if (Platform.OS === "web") {
         Alert.alert(
           "Share from your phone",
@@ -28,7 +27,7 @@ export const useLedgerSharing = () => {
       setIsSharing(true);
 
       try {
-        const html = buildLedgerReportHtml({ balanceCents, entries, user });
+        const html = buildLedgerReportHtml({ entries, user });
         const { uri } = await Print.printToFileAsync({
           base64: false,
           html,

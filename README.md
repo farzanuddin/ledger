@@ -2,6 +2,11 @@
 
 A lightweight shared ledger app built with Expo, React Native, and TypeScript. Track purchases, categorize entries by source, and keep totals synced through Firebase.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/demo.png">
+  <img src=".github/assets/demo.png" alt="Ledger app screenshot" width="320">
+</picture>
+
 ## Objective
 
 This project was built as a small practical app for tracking money between people without spreadsheet overhead. It is also an exploration of using Expo with a minimal TypeScript codebase and Firebase-backed persistence.
@@ -9,10 +14,9 @@ This project was built as a small practical app for tracking money between peopl
 ## Features
 
 - **Purchase entries** — record amount, note, date, person, and purchase source
-- **People and source management** — add or remove ledger people and purchase sources
-- **Firebase sync** — persist entries, people, and source options to Firestore
+- **Balance settle** — one-tap zero the balance with a counter-entry
+- **People and source management** — add or remove people and purchase sources
 - **PDF sharing** — generate and share a ledger PDF from native devices
-- **Delete confirmation** — review entry details before removing a purchase
 
 ## Tech Stack
 

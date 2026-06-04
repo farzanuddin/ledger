@@ -1,9 +1,10 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radii, sizes, spacing, typography, withButtonState } from "../theme";
 import type { Person } from "../types";
 
-export function AppHeader({
+export const AppHeader = memo(function AppHeader({
   isDisabled,
   onOpenSettings,
   onRefresh,
@@ -47,25 +48,32 @@ export function AppHeader({
         </View>
       </View>
 
-      <View style={styles.tabBar}>
-        {people.map((person) => {
-          const isActive = selectedPerson === person.id;
-          return (
-            <Pressable
-              key={person.id}
-              onPress={() => onSelectPerson(person.id)}
-              style={[styles.tab, isActive && styles.tabActive]}
-            >
-              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                {person.name}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      {people.length === 0 ? (
+        <Text style={styles.emptyPeopleText}>
+          Add a person in Settings to begin
+        </Text>
+      ) : (
+        <View style={styles.tabBar}>
+          {people.map((person) => {
+            const isActive = selectedPerson === person.id;
+            return (
+              <Pressable
+                key={person.id}
+                accessibilityLabel={person.name}
+                onPress={() => onSelectPerson(person.id)}
+                style={[styles.tab, isActive && styles.tabActive]}
+              >
+                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                  {person.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   header: {
@@ -121,6 +129,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: spacing.sm,
     paddingVertical: spacing.xl,
+  },
+  emptyPeopleText: {
+    color: colors.textMuted,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.xl,
+    textAlign: "center",
   },
   tabActive: {
     backgroundColor: colors.primary,

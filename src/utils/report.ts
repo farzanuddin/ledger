@@ -23,11 +23,9 @@ export const entriesSinceLastSettlement = (entries: Entry[]) => {
 };
 
 export const buildLedgerReportHtml = ({
-  balanceCents: _balanceCents,
   entries,
   user,
 }: {
-  balanceCents: number;
   entries: Entry[];
   user: string;
 }) => {

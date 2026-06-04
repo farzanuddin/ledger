@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { colors, commonStyles, modalStyles, radii, sizes, spacing, typography, withButtonState } from "../theme";
 import type { Source } from "../types";
@@ -11,7 +11,7 @@ const getPreferredSourceName = (sources: Source[]) =>
   sources[0]?.name ||
   "";
 
-export function AddEntryModal({
+export const AddEntryModal = memo(function AddEntryModal({
   isSaving,
   onAddEntry,
   onClose,
@@ -55,8 +55,16 @@ export function AddEntryModal({
     <ModalSheet visible={visible} onClose={closeModal}>
       <View style={modalStyles.header}>
         <Text style={modalStyles.title}>New entry</Text>
-        <Pressable onPress={closeModal}>
-          <MaterialIcons name="close" size={24} color={colors.muted} />
+        <Pressable
+          accessibilityLabel="Close new entry form"
+          disabled={isSaving}
+          onPress={closeModal}
+        >
+          <MaterialIcons
+            name="close"
+            size={24}
+            color={isSaving ? colors.textMuted : colors.muted}
+          />
         </Pressable>
       </View>
 
@@ -92,7 +100,7 @@ export function AddEntryModal({
       </View>
     </ModalSheet>
   );
-}
+});
 
 const styles = StyleSheet.create({
   // Submit state
@@ -277,11 +285,14 @@ function useAddEntryForm(sources: Source[]) {
     selectSource,
     setError: setErrorMessage,
     sourcePickerOpen,
-    toggleSourcePicker: () => setSourcePickerOpen((isOpen) => !isOpen),
+    toggleSourcePicker: useCallback(
+      () => setSourcePickerOpen((isOpen) => !isOpen),
+      [],
+    ),
   };
 }
 
-function SourcePicker({
+const SourcePicker = memo(function SourcePicker({
   isOpen,
   onSelectSource,
   onToggle,
@@ -296,7 +307,11 @@ function SourcePicker({
 }) {
   return (
     <View>
-      <Pressable onPress={onToggle} style={styles.sourceHeader}>
+      <Pressable
+        accessibilityLabel={isOpen ? "Collapse source picker" : "Expand source picker"}
+        onPress={onToggle}
+        style={styles.sourceHeader}
+      >
         <Text style={styles.sourceLabel}>
           Source:{" "}
           <Text style={styles.sourceValue}>
@@ -318,6 +333,7 @@ function SourcePicker({
               return (
                 <Pressable
                   key={source.id}
+                  accessibilityLabel={`Select source ${source.name}`}
                   onPress={() => onSelectSource(source.name)}
                   style={[styles.sourcePill, isSelected && styles.sourcePillActive]}
                 >
@@ -342,9 +358,9 @@ function SourcePicker({
       )}
     </View>
   );
-}
+});
 
-function EntryFields({
+const EntryFields = memo(function EntryFields({
   amount,
   note,
   onAmountChange,
@@ -410,4 +426,4 @@ function EntryFields({
       />
     </View>
   );
-}
+});

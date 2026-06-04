@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { colors, commonStyles, modalStyles, radii, sizes, spacing, typography, withButtonState } from "../theme";
 import type { Person, Source, SettingsTab } from "../types";
@@ -12,7 +12,7 @@ type SettingsItem = {
   name: string;
 };
 
-export function SettingsModal({
+export const SettingsModal = memo(function SettingsModal({
   sources,
   isSavingPerson,
   isSavingSource,
@@ -63,7 +63,7 @@ export function SettingsModal({
     <ModalSheet visible={visible} onClose={closeModal} contentStyle={styles.content}>
       <View style={modalStyles.header}>
         <Text style={modalStyles.title}>Settings</Text>
-        <Pressable onPress={closeModal}>
+        <Pressable accessibilityLabel="Close settings" onPress={closeModal}>
           <MaterialIcons name="close" size={24} color={colors.muted} />
         </Pressable>
       </View>
@@ -99,7 +99,7 @@ export function SettingsModal({
       </View>
     </ModalSheet>
   );
-}
+});
 
 const styles = StyleSheet.create({
   // Modal shell
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function SettingsTabBar({
+const SettingsTabBar = memo(function SettingsTabBar({
   activeTab,
   onTabChange,
 }: {
@@ -209,9 +209,10 @@ function SettingsTabBar({
         const isActive = activeTab === tab;
 
         return (
-          <Pressable
-            key={tab}
-            onPress={() => onTabChange(tab)}
+                <Pressable
+                  key={tab}
+                  accessibilityLabel={tab === "people" ? "People tab" : "Sources tab"}
+                  onPress={() => onTabChange(tab)}
             style={[styles.tab, isActive && styles.tabActive]}
           >
             <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
@@ -222,9 +223,9 @@ function SettingsTabBar({
       })}
     </View>
   );
-}
+});
 
-function SettingsListSection<T extends SettingsItem>({
+const SettingsListSection = memo(function SettingsListSection<T extends SettingsItem>({
   addPlaceholder,
   emptyText,
   isSaving,
@@ -257,6 +258,7 @@ function SettingsListSection<T extends SettingsItem>({
           value={newValue}
         />
         <Pressable
+          accessibilityLabel={`Add ${addPlaceholder}`}
           disabled={isSaving}
           onPress={onAdd}
           style={withButtonState(styles.addButton, isSaving)}
@@ -290,4 +292,4 @@ function SettingsListSection<T extends SettingsItem>({
       </ScrollView>
     </View>
   );
-}
+});

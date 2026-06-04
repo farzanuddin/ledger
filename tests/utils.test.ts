@@ -428,7 +428,6 @@ test("builds report html with escaped content", () => {
   ];
 
   const html = buildLedgerReportHtml({
-    balanceCents: 2500,
     entries,
     user: "Dad & Co",
   });
@@ -461,7 +460,6 @@ test("buildLedgerReportHtml only includes entries after last settlement", () => 
   });
 
   const html = buildLedgerReportHtml({
-    balanceCents: 300 + 150 + 75,
     entries: [settlement, after1, after2],
     user: "Test",
   });
@@ -481,7 +479,6 @@ test("buildLedgerReportHtml shows empty state when no entries remain after settl
   });
 
   const html = buildLedgerReportHtml({
-    balanceCents: -100,
     entries: [settlement],
     user: "Test",
   });
@@ -496,7 +493,6 @@ test("buildLedgerReportHtml shows balance computed from only recent entries", ()
   ];
 
   const html = buildLedgerReportHtml({
-    balanceCents: 999, // This value is now ignored
     entries,
     user: "Test",
   });

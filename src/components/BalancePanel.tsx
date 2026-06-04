@@ -1,10 +1,11 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radii, sizes, spacing, typography, withButtonState } from "../theme";
-import { formatDecimalAmount } from "../utils/format";
+import { formatBalanceCell } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
 
-export function BalancePanel({
+export const BalancePanel = memo(function BalancePanel({
   balanceCents,
   isDisabled,
   isSharing,
@@ -33,9 +34,7 @@ export function BalancePanel({
             balanceCents < 0 ? styles.negativeAmount : styles.totalAmount,
           ]}
         >
-          {balanceCents < 0 ? "(" : ""}
-          {formatDecimalAmount(Math.abs(balanceCents) / 100)}
-          {balanceCents < 0 ? ")" : ""}
+          {formatBalanceCell(balanceCents)}
         </Text>
         <Pressable
           accessibilityLabel="Share ledger PDF"
@@ -54,6 +53,7 @@ export function BalancePanel({
       </Text>
       <View style={styles.actionRow}>
         <Pressable
+          accessibilityLabel="Add entry"
           disabled={isDisabled}
           onPress={onAddEntry}
           style={withButtonState(styles.addEntryButton, isDisabled)}
@@ -61,6 +61,7 @@ export function BalancePanel({
           <Text style={styles.addEntryButtonText}>Add entry</Text>
         </Pressable>
         <Pressable
+          accessibilityLabel="Settle balance"
           disabled={isDisabled || balanceCents === 0}
           onPress={onSettleBalance}
           style={withButtonState(styles.settleButton, isDisabled || balanceCents === 0)}
@@ -71,7 +72,7 @@ export function BalancePanel({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   balancePanel: {

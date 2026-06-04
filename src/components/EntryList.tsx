@@ -2,7 +2,7 @@ import { memo, useCallback } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radii, spacing, typography, withButtonState } from "../theme";
 import type { Entry } from "../types";
-import { formatDecimalAmount, formatEntryDate } from "../utils/format";
+import { formatBalanceCell, formatEntryDate } from "../utils/format";
 import { AedSymbol } from "./AedSymbol";
 
 const textTruncate = Platform.select({
@@ -13,7 +13,26 @@ const textTruncate = Platform.select({
   },
 });
 
-export function EntryList({
+const ListEmpty = memo(function ListEmpty({
+  isLoading,
+}: {
+  isLoading: boolean;
+}) {
+  return (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyTitle}>
+        {isLoading ? "Loading ledger" : "No entries yet"}
+      </Text>
+      <Text style={styles.emptyBody}>
+        {isLoading
+          ? "Syncing your latest entries."
+          : "Add the first amount to start tracking who owes whom."}
+      </Text>
+    </View>
+  );
+});
+
+export const EntryList = memo(function EntryList({
   entries,
   isLoading,
   onRequestDelete,
@@ -35,22 +54,18 @@ export function EntryList({
       contentContainerStyle={styles.listContent}
       data={entries}
       keyExtractor={(item) => item.id}
-      ListEmptyComponent={
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>
-            {isLoading ? "Loading ledger" : "No entries yet"}
-          </Text>
-          <Text style={styles.emptyBody}>
-            {isLoading
-              ? "Syncing your latest entries."
-              : "Add the first amount to start tracking who owes whom."}
-          </Text>
-        </View>
-      }
+      getItemLayout={(_data, index) => ({
+        index,
+        length: 72,
+        offset: 72 * index,
+      })}
+      windowSize={5}
+      removeClippedSubviews={true}
+      ListEmptyComponent={<ListEmpty isLoading={isLoading} />}
       renderItem={renderItem}
     />
   );
-}
+});
 
 const EntryRow = memo(function EntryRow({
   entry,
@@ -79,9 +94,7 @@ const EntryRow = memo(function EntryRow({
               entry.amountCents < 0 ? styles.negativeAmount : styles.positiveAmount,
             ]}
           >
-            {entry.amountCents < 0 ? "(" : ""}
-            {formatDecimalAmount(Math.abs(entry.amountCents) / 100)}
-            {entry.amountCents < 0 ? ")" : ""}
+            {formatBalanceCell(entry.amountCents)}
           </Text>
         </View>
         <Pressable
@@ -102,11 +115,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: spacing.screen,
-    paddingBottom: 32,
+    paddingBottom: spacing.section * 2 + spacing.sm,
   },
   emptyState: {
     alignItems: "center",
-    paddingVertical: 42,
+    paddingVertical: spacing.screen + spacing.section + spacing.lg,
   },
   emptyTitle: {
     color: colors.text,
